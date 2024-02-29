@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# locate decimal point in a query
+
+read -p "enter decimal number" NUM
+
+
+CHECK=$(($NUM==$NUM))
+STATUS=$?
+echo $STATUS
+if [ $STATUS -gt 0 ] 
+then
+	echo "this $NUM is decimal"
+else 
+	echo "nah..not decimal"
+fi
+

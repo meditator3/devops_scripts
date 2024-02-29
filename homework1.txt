@@ -1,0 +1,4 @@
+write a bash script that go into /tmp directory
+and create a file called test1.txt
+and insert "WELLCOME TO DEVOPS" into test1.txt
+and then copy the file to test2.txt in tmp folder

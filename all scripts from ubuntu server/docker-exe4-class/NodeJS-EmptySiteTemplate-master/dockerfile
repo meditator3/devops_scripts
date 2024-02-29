@@ -1,0 +1,6 @@
+FROM node
+WORKDIR /app/tar
+COPY . /app/tar
+RUN npm install 
+ENTRYPOINT ["node", "server.js"]
+

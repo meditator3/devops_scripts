@@ -1,0 +1,42 @@
+this rsync's syncs files/mirrors from /root to /backups and logs what has been changed/copied(the delta)
+
+proces:
+
+mkdir /backups
+(sudo to root)
+
+mkdir ~/bin
+vi ~/bin/mybackup.sh
+
+----script mybackup.sh ----
+
+#!/bin/bash
+SBJT="cron backup report for `hostname -s` from $(date +%Y%m%d:%T)"
+FROM=root@domain
+EMAIL=r_e_l_g@yahoo.com
+SOURCE=~/rsync_test
+DEST=~/sync-target
+## LFPATH :LOG FILE PATH
+LFPATH=~/logs_rsync
+LF=$LFPATH/$(date +%Y%m%d_%T)_logfile.log
+rsync --delete --log-file=$LF -avzq $SOURCE $DEST
+# (echo "SUBJECT:$SBJT"; echo; cat $LF) | sendmail -f $FROM -t $EMAIL
+# echo "SUBJECT:$SBJT"; echo; cat $LF
+
+
+
+---- ----
+install sendmail : yum install sendmail
+
+
+crontab -e
+
+---script in crontab
+30 20 * * * /root/bin/mybackups.sh
+
+לשים לב:
+sendmail needs domain hostname (with .com or something else)
+check host name via: cat /etc/hostname and edit if needed
+
+
+XXX not working

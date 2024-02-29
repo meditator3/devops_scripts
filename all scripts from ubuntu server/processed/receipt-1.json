@@ -1,0 +1,22 @@
+{
+  "receipt": {
+    "store": {
+      "name": "Google Merchandise Store",
+      "address": "359 KESLER MILL RD SALEM, VA 2413 5403890014",
+      "webpage": "https://shop.googlemerchandisestore.com"
+    },
+    "order": {
+      "dateTime": "2017-11-13T15:54:00.000Z",
+      "id": "DYJB1QCD4ZS6C",
+      "employee": "Hector"
+    },
+    "purchasedItems": [
+      {
+        "name": "Zestaw obiadowy",
+        "quantity": 1,
+        "price": "17.99"
+      }
+    ],
+    "currency": "USD"
+  }
+}

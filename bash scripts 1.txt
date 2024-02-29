@@ -1,0 +1,15 @@
+
+this script runs sleep- figures out its process, and waits to output end of process with echo
+--------------
+#! /bin/bash
+echo "starting sleep...."
+sleep 5 &
+PID=$!
+echo "PID of script is ${PID}"
+
+pidof sleep
+echo $!
+wait $PID
+echo "it i...end sleep!"
+
+

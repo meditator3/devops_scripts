@@ -1,0 +1,2 @@
+python python.py to run the python script, also i installed apt install python-is-python3
+ its actully can run with ./python.py if you changed the permission to executable :)

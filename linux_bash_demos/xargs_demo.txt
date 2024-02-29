@@ -1,0 +1,1 @@
+ls *.sh | xargs chmod u+x ...which creates executable permission for all scripts, instead of running it with sh!

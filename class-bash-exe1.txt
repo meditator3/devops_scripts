@@ -1,0 +1,102 @@
+given three integers representing three sides of Triane, identify whether the triangle is scalene, isosceles, or equilateral.
+scalene: no equal sides
+isosceles: 2 equal sides
+equilateral: all 3 equal
+
+
+
+
+
+
+answer:
+
+
+----------
+#!/bin/bash
+SIDE1=1
+SIDE2=15
+SIDE3=10
+if [ $SIDE1 -eq $SIDE2 -o $SIDE1 -eq $SIDE3 -o $SIDE2 -eq $SIDE3 ]
+then
+        if [ $SIDE1 -eq $SIDE2 -a $SIDE2 -eq $SIDE3 ]
+        then
+                echo "this is equalteral Triangle"
+                exit 1
+        fi
+        echo "this is an isosceles Triangle"
+else
+        echo "this is scalene Triangle"
+fi
+---------
+shows all sh files:
+
+-----
+
+SH=$(ls *.sh)
+echo "these are the sh files:"
+for shs in $SH
+do
+        echo "                  ${shs}"
+done
+---
+with for loop create 1 2 3 4 jpg files, and change their name that the date comes before the name of the file.jpg, also sort it via date
+
+the pictures should be in a separate folder called pictures
+----
+
+answer:
+#!/bin/bash
+cd pictures
+PICTURES=$(ls *.jpg)
+DATE=$(date +"%T,%F")
+
+for picture in $PICTURES
+do
+        echo "renameing ${picture} to ${DATE}_${picture}"
+        mv $picture "${DATE}_${picture}"
+done
+
+-------
+
+create script that reads argument from the console, like ./arg.sh ariel
+
+--- 
+answer:
+#!/bin/bash
+echo " this is the script's name: $0"
+echo " we are going to lock this user : $1"
+
+
+----
+create a script that locks a user according to the name in its argument, for example ./lockit lskywalker
+
+---
+#!/bin/bash
+echo " now locking user :$1"
+passwd -l $1
+
+
+---->we can use passwd -S <user> to see if its locked, and unlock it with -u.
+
+create a script that locks SEVERAL users in a single argument, for example ./lockit lskywalker dvader tamar 
+
+---
+#!/bin/bash
+for user in $@
+do
+        echo " now locking user :${user}"
+        passwd -l $user
+        passwd -S $user
+done
+
+--->unlock script:
+#!/bin/bash
+for user in $@
+do
+        echo " now UN-locking user :${user}"
+        passwd -u $user
+        passwd -S $user
+done
+
+
+

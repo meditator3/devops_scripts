@@ -1,0 +1,37 @@
+version: '1.2'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - react-java-mysql 
+  mysql:
+    image: mysql:8.0.27 
+    environment:
+      - "MYSQL_USER=root"
+      - "MYSQL_PASSWORD=db-57xsl"
+      - "MYSQL_DATABASE=mysql"
+    ports: 
+      - 3306:3306
+    volumes:
+      - mysqldb/var/lib/mysql  
+    networks:
+      - react-java-mysql 
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile       
+    ports: 
+      - 3000:3000
+    networks:
+      - react-java-mysql 
+volumes:
+  mysqldb:
+  java-vol:      
+    
+networks:
+  react-java-mysql:

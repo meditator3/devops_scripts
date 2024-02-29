@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# this just goes into /tmp direct
+
+MY_ROUTE="/tmp"
+cd $MY_ROUTE
+cd "/tmp"
+echo $MY_ROUTE
+
+# this won't work really, even though the command works
+# the path redirects automatically
+# one way to make it a "source" rather than a script running:
+# . ./home2   
+# notice the first dot before that
+
+# or you can add $SHELL to this and it will run it as shell and not as bash
+# script
+$SHELL

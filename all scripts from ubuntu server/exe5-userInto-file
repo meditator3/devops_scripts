@@ -1,0 +1,10 @@
+#! /usr/bin/env python3.8
+filename = input("enter your file name: ")
+f = open(filename, 'a')
+
+while True:
+    text = input("your text here:")
+    if text == "":
+        break
+    f.write(text + '\n')
+

@@ -1,0 +1,46 @@
+----------------------------monitor-disk-space.sh----------------------
+#!/bin/bash
+# 90% is too little disk space is left!
+# change THRESHOLD to check if its wokring to alert you
+THRESHOLD=20
+
+# grep is to capture the right line of the main drive volume, the awk captures the 5th column whihc is %Use
+
+CURRENT_SPACE_IN_USE=$(df -H |grep /dev/mapper/centos-root |awk '{print $5}') #( -H human readable)
+
+#version stages:
+
+# this removes anything with these valuues in Filesystem column. -v is invert the match. and -E externded regular expression
+
+# EXE- which allows the reading of such specail characters | without special notes to apply them as in basic regular exp.
+
+ df -H |grep -vE '^Filesystem|tmpfs|cdrom'
+
+# added removed unneccessary columns and added which is
+# because there can be other volumes/mechitzot, to allow dynamic possibilities
+df -H |grep -vE '^Filesystem|tmpfs|cdrom' |awk '{print $5 " " $6}'
+
+# we add while loop. that uses output as simply the output of what comes out(like echo of this)
+# then we remove the % with cut -d'%' and also need to convert the string to numeric/metric.
+# the f1 means first field
+df -H |grep -vE '^Filesystem|tmpfs|cdrom' |awk '{print $5 " " $6}' | while read output;
+do
+        usep=$(echo $output | awk '{print $1}' | cut -d'%' -f1)
+        # partition will print the path of the volume/mechitza
+        partition=$(echo $output |awk '{print $2}')
+        if [ $usep -ge $THRESHOLD ]; then
+                (echo "Subject: ALERT!: Free space low on `hostname -s` , $usep % used on $partition"; echo)
+        fi
+done
+-------------------------end of script -------------------
+output of this script: 
+/dev/mapper/centos-root   35G   14G   21G  41% /
+/dev/sda1                1.1G  205M  859M  20% /boot
+/dev/mapper/centos-home   17G  1.9G   15G  12% /home
+41% /
+20% /boot
+12% /home
+Subject: ALERT!: Free space low on docker-Slave , 41 % used on /
+
+Subject: ALERT!: Free space low on docker-Slave , 20 % used on /boot
+

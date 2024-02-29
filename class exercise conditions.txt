@@ -1,0 +1,10 @@
+CLASS exercise : write bash script that check variable if have Y or y    If the character is 'Y' or 'y' display "YES".
+If the character is 'N' or 'n' display "NO".
+No other character will be in the Variable
+New
+  6:36 PM
+Instructor Exercise: Given three integers (x,y and z) representing the three sides of a triangle, identify whether the triangle is scalene, isosceles, or equilateral.
+
+    If all three sides are equal, output EQUILATERAL.
+    Otherwise, if any two sides are equal, output ISOSCELES.
+    Otherwise, output SCALENE.

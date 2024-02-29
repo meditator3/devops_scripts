@@ -1,0 +1,3 @@
+create files:  touch todel1 todel2 todel3 todel4 todel5, then -  find . -type f -name todel* , then it removes them with xargs, as it operates on the output: find . -type f -name todel* | xargs rm
+\n also you can use xargs to create alot of files, using text, checkout file files
+\n so i did cat files | xargs touch 
