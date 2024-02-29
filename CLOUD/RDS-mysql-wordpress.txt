@@ -1,0 +1,31 @@
+admin
+usual passwd
+--
+mysql versionL 5.7
+
+commands in mysql:
+mysql -h dblidor.cxwjnmc8j0ya.eu-central-1.rds.amazonaws.com -u admin -p
+8:03
+create database arush;
+8:05
+CREATE USER 'ariel'@'%' IDENTIFIED BY 'qwerty1234';
+8:06
+GRANT ALL PRIVILEGES ON arush.* TO 'ariel'@'%' IDENTIFIED BY 'qwerty1234';
+8:07
+
+FLUSH PRIVILEGES;
+for new user for wordpress:
+ariel
+usual password
+
+
+to create wordpress- we use ENV variables as said here:
+https://hub.docker.com/_/wordpress
+
+inside the task definition of the wordpress we build
+     WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: exampleuser
+      WORDPRESS_DB_PASSWORD: examplepass
+      WORDPRESS_DB_NAME: exampledb
+these VALUES must be changed to the ones we set up on mysql-ariel, db:arush etc
+host is the amazon RTS instance

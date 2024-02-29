@@ -1,0 +1,76 @@
+file:
+
+https://github.com/kubernetes/autoscaler/releases/tag/cluster-autoscaler-chart-9.32.1
+
+installation:
+https://github.com/kubernetes/autoscaler/tree/master/charts/cluster-autoscaler
+
+
+
+
+
+
+MANUAL INSTALL OF ASG to EKS(*** DOESNT WORK!!**):
+
+ helm repo add autoscaler https://kubernetes.github.io/autoscaler
+
+
+# Method 2 - Specifying groups manually
+$ helm install my-release autoscaler/cluster-autoscaler \
+    --set "autoscalingGroups[0].name=eks-NodeGroup-ariel-EKS-b0c60a99-a908-e51d-d570-e5dc5312c46a" \
+    --set "autoscalingGroups[0].maxSize=8" \
+    --set "autoscalingGroups[0].minSize=1"
+
+
+
+
+added policies to remove errors, into this ASG, added permission > add command inline/JSON
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Statement1",
+            "Effect": "Allow",
+            "Action": [
+                "autoscaling:DescribeAutoScalingInstances",
+                "autoscaling:DescribeAutoScalingGroups",
+                "ec2:DescribeLaunchTemplateVersions",
+                "autoscaling:DescribeTags",
+                "autoscaling:DescribeLaunchConfigurations",
+                "ec2:DescribeInstanceTypes",
+                "eks:DescribeNodegroup"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+
+
+AUTO-DISCOVERY INSTALL OF ASG:
+
+# Method 1 - Using Autodiscovery
+$ helm install my-release autoscaler/cluster-autoscaler \
+    --set 'autoDiscovery.clusterName'=<CLUSTER NAME>
+
+new values of helm:
+cat ariel-values
+awsRegion: eu-west-2
+
+autoDiscovery:
+  tags:
+    - k8s.io/cluster-autoscaler/enabled
+    - k8s.io/cluster-autoscaler/ariel-eks-cluster
+
+extraArgs:
+  skip-nodes-with-local-storage: false
+  balance-similar-node-groups: false
+  skip-nodes-with-system-pods: false
+
+
+--
+
+helm install my-release2 autoscaler/cluster-autoscaler \
+    --set autoDiscovery.clusterName=ariel-eks-cluster \
+    --set awsRegion=eu-west-2
+

@@ -1,0 +1,18 @@
+***BEFORE all that must install OPEN VPN.must be running on machine while connecting to private server ***
+
+save password, amster username, db name:
+
+ariel-db
+admin
+qwerty1234
+
+use mysql workbench(windows) to connect via UI.
+click + for new connection setup:
+type any name
+paste host from amazon endpoint
+paste user+password>>store in vault
+open connection-use mysql
+
+
+
+

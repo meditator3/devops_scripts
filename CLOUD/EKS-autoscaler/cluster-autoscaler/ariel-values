@@ -1,0 +1,11 @@
+awsRegion: eu-west-2
+
+autoDiscovery:
+  tags:
+    - k8s.io/cluster-autoscaler/enabled
+    - k8s.io/cluster-autoscaler/ariel-eks-cluster
+
+extraArgs:
+  skip-nodes-with-local-storage: false
+  balance-similar-node-groups: false
+  skip-nodes-with-system-pods: false

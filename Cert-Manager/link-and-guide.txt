@@ -1,0 +1,76 @@
+cert-manager is free, and automates purchasing of new TLS certs, and also renewing them.
+versus for example, wild card certificate which you need to pay 300$ ~ for every subdomain name under the host-zone.
+as in either pay per service for a cert. or pay for all of them(wild card certs are valid for 5 years).
+
+so cert manager automates everything regarding certs. and for free.
+
+
+
+https://cert-manager.io/docs/getting-started/
+
+need a domain name(hostinger for me)
+
+get LB name from k8s:
+kubectl get svc -n ingress-nginx
+
+check the LB has 443 open, because we need https for the certificate
+
+
+-open new hosted zone with my domain name(route53)
+-copy the NS to the registar of my domain(hostinger)
+- use the LB address as an A record in route 53 
+   CHANGE to ALIAS! that why you can protocol it from aws resources
+	choose LoadBalancer + region+ the k8s LB from ingress
+
+that way the domain name will route to the LB and whatever we have(which is k8s!) will show.
+
+
+used this guide:
+https://cert-manager.io/docs/tutorials/acme/nginx-ingress/
+
+stage 4
+install ingress deployment
+
+edit the ingress service:
+name: arieldevops.tech
+api.arieldevops.tech
+
+apply the links on stage 4
+
+
+check the kuard app is working on the domain api.arieldevops.tech
+
+tehn go to helm guide install link
+update repos and install the cert-manager
+
++issuer/yaml
+
+
+chatGPT details:
+----------------------
+Cert Manager and Ingress Nginx work together in a Kubernetes (K8s) environment to manage and automate the process of issuing, renewing, and using SSL/TLS certificates for secure access to your services. Here's an overview of how they interact and why they are related:
+1. Role of Ingress Nginx
+--------------------------
+    Ingress Controller: Ingress Nginx acts as an Ingress controller in a Kubernetes cluster. It manages access to your services from outside the Kubernetes cluster by routing HTTP(S) traffic to different services based on the request's host or path.
+    SSL/TLS Termination: It can also terminate SSL/TLS connections, decrypting incoming HTTPS traffic and sending it to the appropriate backend services as HTTP. This requires a valid SSL/TLS certificate to be presented to the client (e.g., a web browser) to establish a secure connection.
+
+2. Role of Cert Manager
+----------------------------
+    Certificate Management: Cert Manager automates the management of SSL/TLS certificates. It can issue certificates from various issuers like Let's Encrypt or a private CA, handle renewals, and ensure that the certificates are valid and up-to-date.
+    Integration with Ingress: Cert Manager can watch for Ingress resources that indicate the need for a certificate (usually annotated with specific details) and automatically issue and renew certificates as required.
+
+3. How They Work Together
+---------------------------
+    Annotation-Based Communication: When you define an Ingress resource for your application, you can include annotations that specify your intent to secure it with an SSL/TLS certificate. These annotations are recognized by Cert Manager.
+    Certificate Issuance Process: Upon detecting an Ingress resource with the appropriate annotations, Cert Manager initiates the process to issue a certificate. This often involves creating temporary resources within your cluster, such as Challenges and Orders for ACME issuers like Let's Encrypt, which prove control over the domain names specified in the Ingress.
+    DNS or HTTP Validation: Cert Manager may perform DNS or HTTP validation to prove domain ownership to the certificate issuer. For HTTP validation, it temporarily modifies the Ingress resource or creates specific routes to respond to challenges from the certificate authority.
+    Certificate Storage and Association: Once issued, the certificate is stored in a Kubernetes Secret. Cert Manager updates the Ingress resource or directly communicates with the Ingress controller (Nginx in this case) to use this Secret for SSL/TLS termination.
+    Automatic Renewals: Cert Manager continuously monitors the certificates' validity periods and automatically initiates the renewal process before they expire, ensuring uninterrupted HTTPS service.
+
+4. Why They Are Related in Your K8s Service
+-------------------------------------------
+    The Ingress-Nginx service requires valid SSL/TLS certificates to securely serve traffic over HTTPS. Cert Manager provides these certificates and manages their lifecycle, directly impacting how the Ingress-Nginx service operates.
+    The relationship between the Ingress-Nginx service and Cert Manager is foundational for enabling secure communication to your applications. They work in concert, with Cert Manager handling the certificates' lifecycle and Ingress Nginx utilizing those certificates to secure traffic.
+
+------
+In summary, Cert Manager and Ingress Nginx communicate through Kubernetes resources (like Ingress and Secrets), annotations, and sometimes direct API calls. This integrated process automates the provisioning and management of SSL/TLS certificates, crucial for secure communication in your Kubernetes environment.

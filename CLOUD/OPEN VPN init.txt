@@ -1,0 +1,56 @@
+ec2 instance>launch
+select AMI marketplace>marketplace tab>openvpn> free tier only(o fees on desc.)> select>check pricing tabs
+
+edit network:
+  public IP
+  enable ip public
+
+Launch 
+login using ssh but user= openvpnas
+in the setting :
+yes>eula
+yes>stand alone
+listen on all network interface>1
+rsa
+size of cert> 2048
+default>rsa, 0248, 943, 443
+should client traffic be routed by default through VPN>NO! (if yes-clients can abuse traffic for illegal activity!!)
+no-for dns traffic of client
+access to private subnet: yes! this is why we put the vpn-to access private servers
+
+user: openvpn
+password: Arwdsef1@34
+
+>didnt use activation key> leave blank
+
+DONE
+access VIA browser on the logs after fininsh installing: example:
+Admin  UI: https://13.48.127.63:943/admin
+
+because it is risk via browser, use advanced on the browser> agree to continue
+login
+
+in the UI:
+can add users for other to use
+
+we will use client ip granted from after the installation.
+after login(can be same as admin), we download openvpn access server for windows
+download and install
+
+use same user + password
+
+should be running a window of openVPN with network bar/graph
+
+now to connect to private servers
+------------------------
+make simple windows instance. create password: connect>rdp client>get password>upload pem key>copy password
+
+for windows, 
+user: administrator
+password:RJlB1r(&0)NOKWpm8JK*r5s9HutXo?DM
+
+now open RDP on your local machine, enter private IP as the host.
+
+----
+to connect to mysql checkout MYSQL init
+

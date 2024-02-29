@@ -1,0 +1,51 @@
+to add admin user to EKS(in case more devops need to work on it)
+
+check who's authorized:
+
+ kubectl -n kube-system get configmap aws-auth -o yaml
+
+should display like this, and rolearn is the user/s that are registered as admin.
+
+apiVersion: v1
+data:
+  mapRoles: |
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::343568180534:role/ariel-EKS-nodeGroup
+      username: system:node:{{EC2PrivateDNSName}}
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2023-11-28T09:12:59Z"
+  name: aws-auth
+  namespace: kube-system
+  resourceVersion: "1128575"
+  uid: 462f5626-136f-4e8e-92f4-b8400b935fa8
+
+
+to edit the configmap :
+kubectl -n kube-system edit configmap aws-auth
+
+<will open a notepad edit, can copy paste to VS code>
+
+to get the user ARN:
+go to users>ARN(copy)
+
+
+and add under mapRoles: |   <<<<<<<<<<<<<DANGEROUS CAN DESTROY CLUSTER!!!!!
+
+mapRoles: |
+  - groups:
+	:	
+	:
+	:
+mapUsers: |
+  - userarn: <copy here the ARN of the added user>
+    username: <username of added>
+    groups:      <<<<<<<<<<<<<<<<<<THIS IS MOST CRUCIAL, because it gives the role of admin! >>>>	
+      - system: masters
+
+
+**now copy back to the notepad if worked on VS code
+
+no need to reboot anything, it should be applied immedietly.

@@ -1,0 +1,50 @@
+the problem is that volumes on different AZ of the pod will not revive. because there's no volume on that AZ.
+solution:
+delete node and hope it will revive in proper AZ, or 
+edit the auto scaling group for the proper AZ. 
+and then re-edit to add the rest of the AZ after the volume/pod has connected
+
+
+--------------
+soltion guide/creating of problem too:
+after initiating working LB with nginx on the cluster.
+
+change node group to 1 node instead of 2.
+
+now, kubectl get nodes
+you will see on one of the nodes: Ready, Scheduling disabled.
+
+check if app is still running with th LB address- if not it means its not in the same AZ
+
+and we lost the volume.
+
+if i destroy the last node- via EC2 , the question if he'll ressusicate the pod in the same AZ the volume were
+to destroy the node from ec2: copy paste the name of the machine/instance from EKS and filter it via ec2 instance.
+you should see the internal ip as the same( but the public should be different)
+
+
+then we check the autoscaling group that shows the node would be re-created.
+unless its on the same AZ, the volume is lost. meaning the index.html we put there is lost/the app data the company needs!
+
+
+
+check now:
+what AZ is the node? >> kubectl get nodes --show-labels
+what AZ is the volume? go to aws portal EC2>volumes, check the one that's available and with right name
+
+if not in the same, assign it via kubectl label:
+kubectl label nodes <node name> zone=<same zone of volume>
+
+XXXX didnt work
+
+go to ASG(auto scaling group) edit AZ-remove unwanted AZ, and delete instance of node. after it'll be up, it will rise on the proper AZ.
+then re-edit the AZ of ASG to add them again.
+
+
+troubleshoot:
+find nodegroup:
+ aws eks list-nodegroups --cluster-name ariel-eks-cluster
+
+describe:
+
+aws eks describe-nodegroup --cluster-name <ariel-eks-cluster> --nodegroup-name <NodeGroup-ariel-EKS>

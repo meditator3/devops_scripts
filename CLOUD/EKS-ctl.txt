@@ -1,0 +1,54 @@
+aws cli installed and verified. check access keys or new, and delete old ones if troubleshoot.
+
+download eksctl and add to ENV PATH.
+
+install this yaml called config.yaml
+
+via this command:
+> eksctl create cluster -f config.yaml
+
+
+
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cluster-in-existing-vpc
+  region: eu-west-2
+vpc:
+  subnets:
+    private:
+      eu-west-2a: { id: subnet-03fc0359221d6359e }
+      eu-west-2b: { id: subnet-07f8f2e18d600b9f8 }
+      eu-west-2c: { id: subnet-07cdef86020d2af0b }
+
+nodeGroups:
+  - name: ng-1-workers
+    labels: { role: workers }
+    instanceType: t3.xlarge
+    desiredCapacity: 1
+    privateNetworking: true
+  - name: ng-2-builders
+    labels: { role: builders }
+    instanceType: t3.2xlarge
+    desiredCapacity: 1
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
+
+
+to delete:
+check you're in right cluster-
+kubectl config get-contexts
+switch if needed:
+kubectl config use-context aws4@cluster-in-existing-vpc.eu-west-2.eksctl.io
+
+
+eksctl delete nodegroup --config-file=dev-cluster.yaml --include=ng-2-builders --approve
+
+8:31
+eksctl upgrade cluster -f config.yaml --approve
+8:32
+eksctl delete cluster --name=<name> [--region=<region>]
+make sure the name is like the one appearing on amazon portal.

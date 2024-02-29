@@ -1,0 +1,251 @@
+PIPELINE1
+this is script for pipeline of a war file, deployed in script via jenkins, maven/java simple hello world.
+including integration tests, via added conditinal script special switch in curl (-f)  
+that shows an error if it gets 404
+
+--------------------------------------------
+node {
+    stage('Checkout from Git ') {
+    cleanWs()
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/hello-world-war.git']])
+    
+    
+    }
+    stage('Build - Compile ') {
+    
+    sh 'mvn compile'
+    
+    
+    }
+    stage('Test') {
+    
+    sh 'mvn test'
+    
+    
+    }
+    
+    stage('Package') {
+    
+    sh 'mvn clean package'
+    
+    
+    }
+    
+    stage('Integration Tests') {
+    sh 'rm -rf  /opt/tomcat/latest/webapps/hello-world-war-1.0.0'
+    sh 'cp target/*.war /opt/tomcat/latest/webapps/'
+    sh 'sleep 8'
+    sh '''curl -f http://127.0.0.1:8080/hello-world-war-1.0.0/;
+    if [ $(echo $?) -ne 0 ]; then
+        exit 1
+    fi'''
+    
+    
+    }
+    stage('archive artifact') {
+    
+    archiveArtifacts artifacts: 'target/*.war', followSymlinks: false
+    
+    chuckNorris()
+    }
+    stage('Notify Slack') {
+    
+        slackSend channel: '#devops-december-2022', color: 'good', message: 'Build OK '
+    }
+    
+    
+}
+
+-----------------------------------------------------------------------------------
+PIPELINE PYTHON HELLO WORLD
+
+node {
+    stage('Checkout from Git ') {
+    cleanWs()
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/hello-world-python.git']])
+    
+    
+    }
+    stage('Build - Compile ') {
+    
+    sh 'pip install -r requirements.txt'
+    sh 'sed -i "s/8080/8888/g" app.py'
+    
+    
+    }
+    stage('Test') {
+    
+    sh 'python3 app.py&'
+    
+    
+    }
+    
+    stage('Package') {
+    
+   
+    sh 'tar cvfz app.tar.gz *'
+    
+    
+    }
+    
+    stage('Integration Tests') {
+    
+    sh 'curl 127.0.0.1:8888'
+
+    
+    }
+
+
+---------------
+    node('docker') {
+    stage('Checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/node-hello.git']])
+    }
+    stage('Build') {
+    sh "docker build -t lidorlg/node-hello-new:${env.BUILD_NUMBER} ."
+    }
+    stage('Test') {
+    sh "docker run -itd --name node-hello-new -p 3000:3000 lidorlg/node-hello-new:${env.BUILD_NUMBER}"
+    sh "sleep 4"
+    sh "curl localhost:3000"
+    sh "docker stop node-hello-new && docker rm node-hello-new"
+    }
+    stage('Push to DockerHub') {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'pass', usernameVariable: 'user')]) {
+     sh "docker login -u $user -p $pass"
+    sh "docker push lidorlg/node-hello-new:${env.BUILD_NUMBER}"
+            }
+   
+    }
+}
+
+    
+    stage('archive artifact') {
+    
+    archiveArtifacts artifacts: 'app.tar.gz', followSymlinks: false
+    
+    chuckNorris()
+    }
+   
+    
+}
+
+------------------------
+USING SLAVE DOCKER 
+
+node('docker') {
+    stage('Checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/node-hello.git']])
+    }
+    stage('Build') {
+    sh "docker build -t lidorlg/node-hello-new:${env.BUILD_NUMBER} ."
+    }
+    stage('Test') {
+    sh "docker run -itd --name node-hello-new -p 3000:3000 lidorlg/node-hello-new:${env.BUILD_NUMBER}"
+    sh "sleep 4"
+    sh "curl localhost:3000"
+    sh "docker stop node-hello-new && docker rm node-hello-new"
+    }
+    stage('Push to DockerHub') {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'pass', usernameVariable: 'user')]) {
+     sh "docker login -u $user -p $pass"
+    sh "docker push lidorlg/node-hello-new:${env.BUILD_NUMBER}"
+            }
+   
+    }
+}
+
+changed for my settings:
+node('docker') {
+    stage('Checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/node-hello.git']])
+    }
+    stage('Build') {
+    sh "docker build -t arielguez/node-hello-new:${env.BUILD_NUMBER} ."
+    }
+    stage('Test') {
+    sh "docker run -itd --name node-hello-new -p 3000:3000 arielguez/node-hello-new:${env.BUILD_NUMBER}"
+    sh "sleep 4"
+    sh "curl localhost:3000"
+    sh "docker stop node-hello-new && docker rm node-hello-new"
+    }
+    stage('Push to DockerHub') {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'ariel', usernameVariable: 'qwerty1234')]) {
+     sh "docker login -u $user -p $pass"
+    sh "docker push arielguez/node-hello-new:${env.BUILD_NUMBER}"
+            }
+   
+    }
+}
+
+ARCHIVE AN ARTIFACT
+stage('Archive Artifact') {
+            steps {
+                sh 'tar -czf artifact.tar.gz path/to/artifact'
+            }
+        }
+
+OR:
+stage('Archive Artifact') {
+            steps {
+                archiveArtifacts 'path/to/artifact/*'
+            }
+        }
+
+
+WINDOWS!
+----
+pipeline {
+    agent {
+  label 'windows'
+}
+
+    stages {
+        stage('checkout code') {
+            steps {
+                checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/jenkins-ci-template.git']])
+            }
+        }
+        stage('build') {
+            steps {
+                bat '''cd src\\MyWindowsService  
+        nuget restore -source "https://api.nuget.org/v3/index.json"'''
+            }
+        }
+        stage('deploy') {
+            steps {
+                bat '''msbuild src\\MyWindowsService\\MyWIndowsService\\Deploy-Windows-Service-Via-MSBuild.proj'''
+            }
+        }
+    }
+}
+
+---
+this (maven-war-module5) builds and static code anlaysis, and also push to nexus:
+node('docker') {
+    stage('Checkout') {
+         checkout scmGit(branches: [[name: '*/Dev']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/meditator3/hello-world-war.git']])
+    }
+   
+    stage('Build Maven') {
+        sh "mvn compile clean package "
+    }
+    stage('SonarQube analysis') {
+        withSonarQubeEnv(credentialsId: 'sonarcloud-token', installationName:'sonarcloud') {
+          sh "sonar-scanner"
+        }
+    }
+    stage('Build Dockerfile') {
+        sh "docker build -t  arielguez/maven-war-ariel:${env.BUILD_NUMBER} . "
+    }
+    stage('Package') {
+        sh "tar cvfz app.tar.gz * "
+    }
+    stage('Send/Push to Nexus') {
+        withCredentials([usernamePassword(credentialsId: 'nexus_login', passwordVariable: 'PASSWORD', usernameVariable: 'USER')]) {
+            sh"docker login -u $USER -p $PASSWORD 192.168.14.13:8088"
+            sh"docker push 192.168.14.13:8088/arielguez/maven-war-ariel:${env.BUILD_NUMBER}"
+        }  
+    }
+       
+}

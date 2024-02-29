@@ -1,0 +1,34 @@
+#version of...? # REMOVE ALL COMMENTS ON THIS OR ANY YML FILES!
+version: "3.8"
+#name of the services
+services:
+  drupal: #the name of the image, first container we create:
+    image: drupal #no need to "expose", just write the ports
+    ports:
+      - 8080:80
+      # no env. variables in here
+    networks: # this also needs to be initialized(see bottom)
+      - drupal-network # just a name we choose for the network we create
+    # we don't need alias for this, because he connects to the db not the opposite.
+    #volume creation:
+      - ./modules:/var/www/html/modules
+      - ./profiles:/var/www/html/profiles
+      - ./sites:/var/www/html/sites
+      - ./themes:/var/www/html/themes
+  postgres: # second container
+    image: postgres:9.6.5-alpine # important to check compatibilities
+    environment:
+      - POSTGRES_DB=drupal
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    networks:
+      drupal-network: # different format than before because we define alias in this network
+        # we already created with drupal
+        aliases:
+          - "db"
+  volumes:
+    - ./psql:/var/lib/postgresql/data
+networks:
+  drupal-network:     
+
+

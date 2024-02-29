@@ -1,0 +1,63 @@
+# install ingress controller with NLB
+
+
+update helm repos for ingress download:
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+
+update the repo after link added:
+helm repo update
+
+setup NLB and ingress :
+
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx  --namespace ingress-nginx --create-namespace \
+  --set-string controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-type"="nlb" 
+
+
+
+verify pods+ns
+
+kubectl get ns
+
+NAME              STATUS   AGE
+default           Active   6d15h
+ingress-nginx     Active   74s
+kube-node-lease   Active   6d15h
+kube-public       Active   6d15h
+kube-system       Active   6d15h
+
+verify pod:
+
+kubectl get pods -n ingress-nginx
+NAME                                        READY   STATUS    RESTARTS   AGE
+ingress-nginx-controller-798796947c-w8wp8   1/1     Running   0          94s
+
+
+
+verify service:
+kubectl get svc -n ingress-nginx
+
+compare LB address from svc to aws portal
+
+
+# create deployment
+kubectl create deployment demo  --image=httpd  --port=80 
+# expose deployment as a service
+kubectl expose deployment demo
+
+kubectl create ingress demo --class=nginx \
+  --rule www.demo.io/=demo:80
+
+
+curl the LB:
+curl -v <LB domain address>
+
+*get the ip from the curl
+
+curl --resolve www.demo.io:80:<ip you got from curl> http://www.demo.io
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    45  100    45    0     0    274      0 --:--:-- --:--:-- --:--:--   276
+<html><body><h1>It works!</h1></body></html>
+
+guide online:
+https://amod-kadam.medium.com/setting-up-nginx-ingress-controller-with-eks-f27390bcf804

@@ -1,0 +1,6 @@
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+aws configure
+
+aws s3 ls
+

@@ -1,0 +1,14 @@
+---
+  - name: playbook1
+    host: web
+    tasks:
+    - name: install apache web Package
+      apt:
+        name: apache2
+        state: present
+    - name: start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+            

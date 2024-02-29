@@ -1,0 +1,456 @@
+apiVersion: v1
+kind: Pod
+metadata: 
+  name: nodehelloworld.exmaple.com
+  labels:
+    app: helloworld
+spec:
+  containers:
+  - name: k8s-demo
+    image: wardviaene/k8s-demo
+    ports:
+    - containerPort: 3000
+
+
+this will run a container
+
+
+----
+
+this will run a service( which works with kubectl apply -f <name>)
+
+apiVersion: v1
+kind: Service
+metadata: 
+  name: helloworld-service
+
+spec:
+  ports:
+  - port: 31001
+    nodePort: 31001
+    targetPort: 3000
+    protocol: TCP
+  selector:
+    app: helloworld
+  type: NodePort
+
+
+-----
+this will run replication Controller that replicates containers of stateless(like static apps)
+
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+  name: helloworld-controller
+spec:
+  replicas: 4
+  selector:
+    app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - containerPort: 3000
+
+
+--------
+create REPLICATION SET (advanced version of replication controller)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: helloworld-deployment
+  labels:
+    app: helloworld
+    environment: QA
+    department : IT
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+      metadata:
+        labels:
+          app: helloworld
+          environment: QA
+          department : IT
+      spec:
+        containers:
+        - name: k8s-demo
+          image: wardviaene/k8s-demo
+          ports:
+          - containerPort: 3000
+
+
+------
+LABELS:
+under PORTS
+          nodeSelector:
+            hardware: high-spec
+
+---------------
+HEALTH CHECK:
+
++ READINESS PROBE:
+
+(deploy-helloworld.yaml)
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: helloworld-deployment
+  labels:
+    app: helloworld
+    environment: QA
+    department: IT
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+        environment: QA
+        department: IT
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo:2
+        ports:
+        - containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          timeoutSeconds: 30
+        readinessProbe:
+          initialDelaySeconds: 1
+          periodSeconds: 5
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 1
+          tcpSocket:
+            host:
+            port: 3000
+      nodeSelector:
+        hardware: high-spec
+
+
+EXERCISE IN ROOMS:
+deploy this image:  lidorlg/dotnet-core-hello:2 to your minikube ( use deployments ) , also setup service Nodeport for it , make sure to set your replica set to 3 , good luck
+
+
+-----------------
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: dotnetcore-deployment
+  labels:
+    app: dotnetcore
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dotnetcore
+  template:
+   metadata:
+      labels:
+        app: dotnetcore
+   spec:
+     containers:
+     - name: dotnet-core-hello
+       image: lidorlg/dotnet-core-hello:2
+       ports:
+       - containerPort: 80
+--
+NODEPORT FILE SERVICE(for above yaml):
+apiVersion: v1
+kind: Service
+metadata: 
+  name: dotnetcore-service
+
+spec:
+  ports:
+  - port: 31002
+    nodePort: 31002
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: dotnetcore
+  type: NodePort
+
+
+-----------------------------------------
+CREATING SECRET VIA YAML (WITH BASE64 USERNAME PASSWORD) USING FILES
+filename:db-secrets.yaml
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secrets
+type: Opaque
+data:
+  username: cm9vdA==
+  password: cGFzc3dvcmQ=
+
+
+--NOW, WE CHANGE THE DEPLOY YAML FILE AND REPLACE ALL THE env: PART, WITH THIS:
+
+ volumeMounts:
+          - name: creds-volume
+            mountPath: /etc/creds
+            readOnly: true 
+
+explanation:
+<name> is general name for the volume, the <mountPath> is where we store the user/password-we ask that from the DEVELOPERS, and <readonly> so it can't be altered.
+
+
+--under the same indentation of nodeSelector, we need to create the volume we assigned to in that code above
+and also make it use that secret, to access the volume:
+
+volumes:
+        - name: creds-volume
+          secret: 
+            secretName: db-secrets  
+explanation:
+	we use our defined volume name from volumeMounts, and use the secret we defined in db-secrets file as access to that volume.
+and the secret will now be inside a file at /etc/creds 
+
+
+--------------
+hello-deploy with volumes! check with kubectl exec -it <pod name>
+and check data on /mnt/data if its there, should be because of volumne sharing
+
+pvc-helloworld.yaml
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: helloworld-claim
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+
+
+hello-deploy.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+  labels:
+    app: helloworld
+    environment: QA
+    department: IT
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: helloworld
+  template:
+    metadata:
+      labels:
+        app: helloworld
+        environment: QA
+        department: IT
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo:2
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: helloworld-claim
+          mountPath: "/mnt/data"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 15
+          timeoutSeconds: 30
+        readinessProbe:
+          initialDelaySeconds: 1
+          periodSeconds: 5
+          timeoutSeconds: 1
+          successThreshold: 1
+          failureThreshold: 1
+          tcpSocket:
+            host:
+            port: 3000
+      volumes:
+      - name: helloworld-claim
+        persistentVolumeClaim:
+           claimName: helloworld-claim
+
+
+-------------------------
+STATEFULSETS: מצב שבו יש שם קבוע (עם סקוונס של מספרים אוטמטי בהתאמה-עם אחד שהוא מנהיג)
+
+
+redis-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  namespace: redis
+  labels:
+    app: redis
+spec:
+  ports:
+    - port: 6379
+  clusterIP: None
+  selector:
+    app: redis
+
+
+---
+
+(first we create namespace)
+kubectl create ns redis
+kubectl apply......
+
+
+
+redis-configmap.yaml 
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-ss-configuration
+  namespace: default
+  labels:
+    app: redis
+data:
+  master.conf: |
+    maxmemory 400mb
+    maxmemory-policy allkeys-lru
+    maxclients 20000
+    timeout 300
+    appendonly no
+    dbfilename dump.rdb
+    dir /data
+  slave.conf: |
+    slaveof redis-ss-0.redis-ss.redis 6379
+    maxmemory 400mb
+    maxmemory-policy allkeys-lru
+    maxclients 20000
+    timeout 300
+    dir /data
+
+-----
+redis-sts.yaml
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-ss
+  namespace: default
+spec:
+  serviceName: "redis-service"
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      initContainers:
+      - name: init-redis
+        image: redis:latest
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+          # Generate redis server-id from pod ordinal index.
+          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
+          ordinal=${BASH_REMATCH[1]}
+          # Copy appropriate redis config files from config-map to respective directories.
+          if [[ $ordinal -eq 0 ]]; then
+            cp /mnt/master.conf /etc/redis-config.conf
+          else
+            cp /mnt/slave.conf /etc/redis-config.conf
+          fi
+        volumeMounts:
+        - name: redis-claim
+          mountPath: /etc
+        - name: config-map
+          mountPath: /mnt/
+      containers:
+      - name: redis
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+          name: redis-ss
+        command:
+          - redis-server
+          - "/etc/redis-config.conf"
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        - name: redis-claim
+          mountPath: /etc
+      volumes:
+      - name: config-map
+        configMap:
+          name: redis-ss-configuration
+  volumeClaimTemplates:
+  - metadata:
+      name: redis-claim
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+  - metadata:
+      name: redis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+
+
+
+
+kubectl get pvc/pods/sc
+---------------------
+to get into dashboard we need either the file of kubeconfig
+or a token which we can generate :
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+------
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: admin-user
+  namespace: kubernetes-dashboard

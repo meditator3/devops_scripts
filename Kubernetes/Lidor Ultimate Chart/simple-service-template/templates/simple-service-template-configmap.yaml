@@ -1,0 +1,19 @@
+{{- range $fullName, $svc := .Values.services }}
+{{- $svc := mergeOverwrite (deepCopy $.Values.default) (deepCopy $svc) }}
+{{- if and $svc.enabled $svc.configDirPath }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-configmap
+data:
+{{- $configFiles := printf "files/%s/*" $fullName }}
+{{- ($.Files.Glob $configFiles).AsConfig | nindent 4 }}
+binaryData:
+{{- $configFiles := printf "binaryFiles/%s/*" $fullName }}
+{{- range $path, $bytes := $.Files.Glob $configFiles }}
+  {{ base $path }}: {{ $.Files.Get $path | b64enc | quote | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}

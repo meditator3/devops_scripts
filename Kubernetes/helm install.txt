@@ -1,0 +1,17 @@
+https://artifacthub.io/
+
+helm repo add bitnami https://charts.bitnami.com/bitnami
+
+7:51
+helm repo list
+New
+7:53
+helm pull bitnami/redis --untar
+7:54
+helm repo update
+  8:06 PM
+helm install my-redis -f my-values.yaml bitnami/redis
+
+
+get the password to login
+kubectl get secret --namespace default my-redis -o jsonpath="{.data.redis-password}" | base64 -d

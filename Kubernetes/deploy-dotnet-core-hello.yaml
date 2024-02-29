@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: dotnet-deployment
+  labels:
+    app: dotnet-hello
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dotnet-hello
+  template:
+      metadata:
+        labels:
+          app: dotnet-hello
+          environment: QA
+          department : IT
+      spec:
+        containers:
+        - name: k8s-demo
+          image: lidorlg/dotnet-core-hello:2
+          ports:
+          - containerPort: 80
+       

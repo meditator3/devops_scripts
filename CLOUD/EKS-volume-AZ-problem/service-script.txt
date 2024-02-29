@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: task-pv-service
+  labels:
+    app: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  type: LoadBalancer
+
+
+--
+kubectl get svc
+copy paste address of LoadBalancer
+
+should get 403 forbidden, cause no index.html
+so need to go to inside the pod:
+
+kubectl exec -it <pod name> /bin/bash
+
+but it only works on powershell.
+
+then go to the folder where html is(usr/share/nginx/html):
+add <h1>this is working now </h1>
+
+refresh the browser address of the LB

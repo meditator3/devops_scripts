@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wordpress
+  namespace: argocd
+spec:
+  destination:
+    namespace: wordpress
+    server: "https://kubernetes.default.svc"
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - Replace=true
+  project: default
+  source: 
+    path: helm-dependency
+    repoURL: "https://github.com/lidorg-dev/argocd-example-apps.git" 
+    targetRevision: HEAD
+    helm:
+      releaseName: wp
+
+create ns first!
+kubectl create ns wordpress  
+
+watch argocd applies and creates everything.

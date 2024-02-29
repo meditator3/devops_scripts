@@ -1,0 +1,28 @@
+https://aws.amazon.com/solutions/implementations/linux-bastion/
+
+
+command for tunnling bastion.
+-use on *local dir* not bastion machine console:
+-make sure same key pair is assigned for BOTH the private and the bastion instance!
+
+ssh -o ProxyCommand="ssh -W %h:%p -i ariel-key2.pem ec2-user@13.48.73.84" -i ariel-key2.pem ubuntu@10.0.2.127
+
+what it does is jumping.
+connects to the bastion, and then jumps to the private subnet/machine with the same key.(the key that is in the local client)
+
+
+configuring bastion inside CloudFormation-Stack:
+-after using link- make sure on correct region.
+- the yaml is the S3 url, that should be automatically pasted from the link. if not- download it, and upload it.
+->(next page)apply right VPC, and the right subnet publics, that are related to that vpn.
+- 0.0.0.0/0 or your own IP that you connect in "allowed bastion external access CIDR)
+- key pair name: just the name of the file of the key in your client machine(local). ariel-key (no file extension)
+- bastion banner, TCP forwarding(to allow tunnling), X11 forwarding, all true.
+  -next page>perserve resources. > apply/mark the box> complete
+---
+after installing the instance: go to EC2
+- goto linuxBastion instance(this is th ebastion instance we created now with CloudFormations), 
+  check the security groups.
+- allow in the ec2 instance to connect+update
+- connect with ssh -i ariel-key.pem ec2-user@<bastion instance address>
+bastion address:51.20.244.25

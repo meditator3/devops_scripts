@@ -1,0 +1,524 @@
+https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-ansible-on-ubuntu-22-04
+
+check:
+ansible --version
+
+
+raising 2 ubuntu(web) + 1 aws linux(db) on same vpc and sec.group+ sec make sure SSH from anywhere
+
+the ssh from gitbash is to the remote-controller machine.(ubuntu user)
+
+on remote ansible machine mkdir ansible>inventory>
+>vi hosts
+----------
+[remote-controller]
+ansible ansible_host=127.0.0.1 ansible_connection=local
+
+
+
+
+
+[web]
+web1 ansible_host=10.0.101.250 ansible_connection=ssh ansible_user=ubuntu
+web2 ansible_host=10.0.101.156 ansible_connection=ssh ansible_user=ubuntu
+
+
+[db]
+db ansible_host=10.0.101.37 ansible_connection=ssh ansible_user=ec2-user
+----------
+but to ssh from the remote-controller to the other servers we need the private key hash:
+we copy it from the local machine (windows) where i use it to authenticate with ariel-key.pem
+, we copy this, into the remote controller.
+
+copy ariel-key.pem from your local windows machine to the remote-controller, and then change the name to id_rsa inside
+~/.ssh
+
+
+check ping for remote with ansible:
+ansible -i inventory/hosts -m ping remote-controller
+ansible -i inventory/hosts -m ping web
+ansible -i inventory/hosts -m ping db
+ansible -i inventory/hosts -m ping all   (checks all machines)
+----
+
+but we need ssh from of aws key... of the remote machine?
+
+create a config for ansible to know where is inventory to load from
+
+>ls
+  inventory (pwd=ubuntu/home/ansible)
+>vi ansible.cfg
+
+[defaults]
+inventory=./inventory/hosts 
+
+
+now, we can use the command without -i
+anisble -m ping web (and other checks
+
+-----
+create file to all servers:
+
+>ansible all -m file -a "path=/tmp/adhoc1 state=touch mode=700"
+
+---
+if we want telnet on db
+
+change in hosts for sudo permission to get telnet permission/elvated/.escalate permission:
+after... ansible_user=ec2-user ansible_become=true
+
+>ansible db -m yum -a "name=telnet state=present"
+
+if not present it will install a telnet (yum install)
+
+----
+to install apache onto ubuntu web machines(both)
+
+>ansible web -m apt -a "name=apach2 present=true"
+
+
+------
+playbook
+------
+
+creating a new playbook on visual studio called playbook-1:
+
+---
+  - name: playbook1
+    host: web
+    tasks:
+    - name: install apache web Package
+      apt:
+        name: apache2
+        state: present
+
+
+check:
+>ansible-playbook playbook-1
+
+
+added to start service and enable on boot:
+also validatation of status
+---
+  - name: playbook1
+    host: web
+    tasks:
+    - name: install apache web Package
+      apt:
+        name: apache2
+        state: present
+    - name: start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+    - name: validate status of apache service
+      shell:
+        cmd: "systemctl status apache2"
+
+
+----
+
+chatgpt fix:
+---
+- name: Install and start Apache web server
+  hosts: web  # Corrected from 'host' to 'hosts'
+  become: yes  # This is often necessary for tasks that require root privileges
+  tasks:
+    - name: Install apache web package
+      apt:
+        name: apache2
+        state: present
+
+    - name: Start and enable Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Validate status of Apache service
+      command: systemctl status apache2  # Changed from 'shell' to 'command'
+      register: result  # Registers the output of the command
+
+    - debug: var=result.stdout_lines  # Optionally, to print the status in the playbook output
+
+
+----------
+
+
+we want to install mysql db via ansible's playbook.
+we check in guide how to install mysql on centos7 (the machine of the db)
+
+
+XXXXXXXXXXXXXXXXXXX not working! XXXXXXXXXXXXXXXXXXXXXXXXXX
+we need to first add repo(took script from guide on ansible add repo module)
+  - name: add mysql db
+    host: db-1
+    tasks:
+      - name: download rpm file
+        shell:
+          cmd: curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el7-5.noarch.rpm
+      - name: install rpm file
+        yum:
+          name: mysql80-community-release-el7-5/noarch.rpm
+          state: present
+      - name: install mysql package  
+	yum:
+	  name: mysql-server                                                  
+        state: present
+        update_cache: true
+XXXXXXXXXXXXXXX because its not centos7 but a linux aws machine XXXXXXXXXXXXXXXXXXX
+
+<check remove package if there is installed>
+
+working playbook:
+---
+  - name: play1
+    hosts: web
+    become: yes	
+    tasks:
+    - name: install Apache web Package
+      apt:
+        name: apache2
+        state: present
+    - name: start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+    - name: validate status of apache service
+      shell:
+        cmd: "systemctl status apache2"
+
+  - name: play2
+    hosts: db
+    become: yes
+    tasks:
+      - name: download rpm file
+        shell:
+          cmd: "curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el9-3.noarch.rpm"
+
+
+      - name: install rpm file
+        yum:
+          name: mysql80-community-release-el9-3.noarch.rpm
+          state: present
+          disable_gpg_check: true
+
+      - name: install mysql package
+        yum:
+          name: mysql-community-server
+          state: present
+          update_cache: true
+      - name: start Mysql Server service
+        service:
+          name: mysqld
+          state: started
+          enabled: yes
+      - name: validate status of Mysql Server service
+        shell:
+          cmd: "systemctl status mysqld"
+
+
+---
+to execute it from the ansible main folder 
+ansible-playbook playbook/playbook-1
+
+add http port 80 to the security group so that you can browse
+
+
+
+we want to copy a file to change the index.html of the mysql db opening page
+we look for docs of it in ansible under :copy
+
+handlers:
+we use if something has change, and for example apache needs to be restrated,
+like changing the index.html 
+file/ariel-index.html can be mkdir files >> ariel-index.html
+handler must have notify before it
+
+---
+  - name: play1
+    hosts: web
+    become: yes
+    tasks:
+    - name: install Apache web Package
+      apt:
+        name: apache2
+        state: present
+    - name: start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+    - name: validate status of apache service
+      shell:
+        cmd: "systemctl status apache2"
+
+    - name: copy website
+      copy:
+        src: ../files/ariel-index.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        backup : true
+      notify:
+        - restart Apache
+
+    handlers:
+      - name: restart Apache
+        service:
+          name: apache2
+          state: restarted
+
+
+
+  - name: play2
+    hosts: db
+    become: yes
+    tasks:
+      - name: download rpm file
+        shell:
+          cmd: "curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el9-3.noarch.rpm"
+
+
+      - name: install rpm file
+        yum:
+          name: mysql80-community-release-el9-3.noarch.rpm
+          state: present
+          disable_gpg_check: true
+
+      - name: install mysql package
+        yum:
+          name: mysql-community-server
+          state: present
+          update_cache: true
+      - name: start Mysql Server service
+        service:
+          name: mysqld
+          state: started
+          enabled: yes
+      - name: validate status of Mysql Server service
+        shell:
+          cmd: "systemctl status mysqld"
+
+
+
+----
+line in file
+simply add a line into any file we want. in this case we changed max_connection in my.cfg to mysql configuration
+
+---
+  - name: play1
+    hosts: web
+    tasks:
+    - name: install Apache web Package
+      apt:
+        name: apache2
+        state: present
+    - name: start Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+    - name: validate status of apache service
+      shell:
+        cmd: "systemctl status apache2"
+
+    - name: copy website
+      copy:
+        src: ../files/index-lidor.html
+        dest: /var/www/html/index.html
+        owner: www-data
+        group: www-data
+        mode: '0644'
+        backup : true
+      notify:
+        - restart Apache
+
+    handlers:
+      - name: restart Apache
+        service:
+          name: apache2
+          state: restarted
+
+
+
+  - name: play2
+    hosts: db
+    tasks:
+      - name: download rpm file
+        shell:
+          cmd: "curl -sSLO https://dev.mysql.com/get/mysql80-community-release-el9-3.noarch.rpm"
+
+
+      - name: install rpm file
+        yum:
+          name: mysql80-community-release-el9-3.noarch.rpm
+          state: present
+          disable_gpg_check: true
+
+      - name: install mysql package
+        yum:
+          name: mysql-community-server
+          state: present
+          update_cache: true
+      - name: start Mysql Server service
+        service:
+          name: mysqld
+          state: started
+          enabled: yes
+      - name: validate status of Mysql Server service
+        shell:
+          cmd: "systemctl status mysqld"
+      - name: add or change config file line
+        lineinfile:
+          path: /etc/my.cnf
+          line: max_connections = 100
+          create: yes
+        notify:
+          - restart Mysql
+
+    handlers:
+      - name: restart Mysql
+        service:
+          name: mysqld
+          state: restarted
+
+
+-----
+
+hosts updated: with become true, that allow root access
+
+-==========
+[remote-controller]
+ansible ansible_host=127.0.0.1 ansible_connection=local ansible_become=true
+
+
+
+
+
+[web]
+web-1 ansible_host=10.0.101.250 anisble_connection=ssh ansible_user=ubuntu ansib
+le_become=true
+web-2 ansible_host=10.0.101.156 anisble_connection=ssh ansible_user=ubuntu ansib
+le_become=true
+
+
+[db]
+db-1 ansible_host=10.0.101.37 anisble_connection=ssh ansible_user=ec2-user ansib
+le_become=true
+======
+but we can also create variables for all of them which repeat:
+
+[remote-controller]
+ansible ansible_host=127.0.0.1 ansible_connection=local ansible_become=true
+
+[windows]
+iis-server ansible_host=18.170.97.30 ansible_connection=winrm ansible_port=5985 ansible_user=ansible ansible_password=(what we put in windows user)
+
+
+[web]
+web-1 ansible_host=10.0.101.250
+web-2 ansible_host=10.0.101.156
+
+
+[db]
+db-1 ansible_host=10.0.101.37
+le_become=true
+
+[servers:children]
+remote-controller
+web
+db
+
+[web:vars]
+anisble_connection=ssh
+ansible_user=ubuntu
+ansible_become=true
+
+[db:vars]
+anisble_connection=ssh
+ansible_user=ec2-user
+ansible_become=true
+
+---------------
+
+to enable windows we create instance of windows t2.xlarge, using winRM-http and winRM-https open to all or to specific ip.
+and we also need to open ports of  firewall
+
+firwall settings(inside the windows machine-check how to get in in windows_pass.txt) >
+add ports 5985, 443 5986
+
+but even though we tell it to use port 5985 and give him the user password (we created on windwos) : 
+windows rdp will reject it, because its still from txt(unsecure).
+so we need to use 
+VAULT
+----
+ansible-vault encrypt inventory/hosts (inside ansible folder)
+
+will encrypt ALL the hosts file, which isn't good for us.
+
+so we have:
+ansible-vault encrypt_string <password we want to encrypt>
+
+then we get:
+!vault |
+dkjslfkjdlvncxm,vnx
+and some encrypted stuff, we copy into the hosts part of : ansible_password= <copied encrypted password>
+
+then we use the password we know, into the ping that connects to the windows:
+
+anisble windows -m ping --ask-vault-pass
+<feed password(normal one)>
+but it didn't work because the hosts isnt a formatted yaml file
+so we need to convert it to hosts.yaml and change the syntaxs:
+
+
+
+preparing IIS windows server:(web-server and common http)
+
+playbook-windows
+
+---
+  - name:  IIS playbook 
+    hosts: windows
+    tasks: 
+      - name: Install WEB SERVER IIS
+        ansible.windows.win_feature:
+           name: Web-Server
+           state: present
+           include_sub_features: true
+           include_management_tools: true
+      register: win_feature
+
+
+register is an ansible feature-read on it. something about tasking outputs.
+
+need to add --ask-vault-pass to ansible command, because it has the access there:
+ansible windows -m win_pink --ask-vault-pass
+
+also add inbound rule port 80/http to everywhere in sec.group of instance, to see the sindows server via browser.
+according to the inventory- hosts has to run on something that is already in the hosts/inventory. so windows runs on the windows hosts/server we defined on hosts/inventory.
+
+ROLES
+--------
+roles are NOT like hosts. that has to be pre-defined.
+roles are tasks of group related-like something only for hosts:windows, or just for db.
+
+we have roles in :
+
+galaxy.ansible.com
+
+which can raise wordpress/windows etc anything.
+but role ISN'T a playbook. we use the role to have it on the playbook.
+
+to install a role, we take the link from the "repo" in galaxy.ansible.com
+for example docker, should NOTE filter VIA download count/popularity.
+<**DIDNT WORK**>
+
+
+there's a command also to create role for yourself:
+anisble-galaxy init ariel-role
+this will create all the structures of the roles/inv+files, a generic/defaultive.

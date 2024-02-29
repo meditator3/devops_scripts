@@ -1,0 +1,215 @@
+https://openebs.io/docs/concepts/cstor   _-----to read
+https://openebs.io/docs/user-guides/installation   ---simple installation
+
+
+(more detailed guide but becareful with installing:
+https://computingforgeeks.com/deploy-and-use-openebs-container-storage-on-kubernetes/ )
+
+more detailed even and better guide:
+
+https://github.com/openebs/cstor-operators/blob/develop/docs/quick.md 
+
+
+brief:
+provides pools of volumes for applications according to the app's demand.
+provides snapshots, clones, HA, and thin provisioning of stateless.
+it gets physical storage and distributes/manage it according to demands of apps and cluster.
+
+prcoess:
+pool of starge is created - like loads of shelves.
+when application requires storage- a pvc is created , the volume provided according to the cp of cStor(one engine of openEBS) evaluation of the storage class and settings.
+target pod is created for each volume of cStor, target pod is reposible for managing the cStor volume(read write), and expose the volume as iSCSI that the app can use as storage like physical.
+
+
+target pod:
+cStor target runs as a pod and exposes an iSCSI LUN on 3260 port. It also exports the volume metrics that can be scraped by Prometheus. it manages and exposes the volume.
+
+pool pod:
+(created before target) 
+provides volumes(more than one if needed), and replicas to maintain HA.
+cStor pool is group of pools, each different pool(pool instance) on a node.  each individual pool is pool instance.
+
+componenets needed:
+-iSCSI
+-cStor can be installed on any node.
+(new storage class is defined that uses the cStor engine. you tell the app to use that sc to select that engine(cStor)).
+
+Components installed:
+1)DATA PLANE: cstor/Jiva/localPV
+2)CONTROL PLANE: volume exports, sidecars, API server, provisioner.
+3)NDM- node disk manager, manages and discovers physical storages/disks and attach them to k8s nodes when needed.
+
+
+installing:
+
+verify iscsi is installed-INSTALL ON WORKERS!!!
+
+yum install iscsi-initiator-utils -y
+systemctl enable --now iscsid
+systemctl status iscsid
+
+create name space for openebs-
+
+kubectl create ns openebs
+
+install openebs via kubectl-
+kubectl apply -f https://openebs.github.io/charts/openebs-operator.yaml
+
+cstor installing:
+kubectl apply -f https://openebs.github.io/charts/cstor-operator.yaml
+
+we need to install "physical" disks to the worker, for cStor to use as block devices.
+-on your WORKERS- assign new HD with storage to SATA connector on vm box(need to shutdown WORKER)
+
+then check your blockdevice resource:
+kubectl get blockdevice -n openebs
+
+to create pool:
+this is CstorPoolCluster (CSPC) yaml:
+---
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+  name: cstor-storage
+  namespace: openebs
+spec:
+  pools:
+    - nodeSelector:
+        kubernetes.io/hostname: "gke-cstor-demo-default-pool-3385ab41-2hkc"
+      dataRaidGroups:
+      - blockDevices:
+          - blockDeviceName: "sparse-176cda34921fdae209bdd489fe72475d"
+      poolConfig:
+        dataRaidGroupType: "stripe"
+---
+CHANGE blockDeviceName, and add more if needed.
+CHANGE host k8s name, by using
+kubectl get node --show-labels, which is simply the host node name for the use of the openEBS(worker1,2)
+create block code for each host and each block device, like this:
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+  name: cstor-storage
+  namespace: openebs
+spec:
+  pools:
+    - nodeSelector:
+        kubernetes.io/hostname: "worker-1"
+      dataRaidGroups:
+        - blockDevices:
+            - blockDeviceName: "blockdevice-10ad9f484c299597ed1e126d7b857967"
+      poolConfig:
+        dataRaidGroupType: "stripe"
+
+    - nodeSelector:
+        kubernetes.io/hostname: "worker-2" 
+      dataRaidGroups:
+        - blockDevices:
+            - blockDeviceName: "blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b"
+      poolConfig:
+        dataRaidGroupType: "stripe"
+   
+    - nodeSelector:
+        kubernetes.io/hostname: "worker-3"
+      dataRaidGroups:
+        - blockDevices:
+            - blockDeviceName: "blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68"
+      poolConfig:
+        dataRaidGroupType: "stripe"
+
+
+-----
+kubectl apply -f <file-name of this yaml CstorPoolCluster, usually cspc>
+
+if all checks out-
+kubectl get cspc -n openebs
+NAME            HEALTHYINSTANCES   PROVISIONEDINSTANCES   DESIREDINSTANCES   AGE
+cstor-storage   1                  1                      1                  2m2s
+
+kubectl get cspi -n openebs
+NAME                 HOSTNAME           ALLOCATED   FREE     CAPACITY   STATUS   AGE
+cstor-storage-vn92   worker1            260k        19900M   19900M     ONLINE   2m17s
+cstor-storage-al65   worker2            260k        19900M   19900M     ONLINE   2m17s
+
+
+
+to test, we need to create storageclass, pvc, and app.
+sc.yaml:
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: cstor-csi
+provisioner: cstor.csi.openebs.io
+allowVolumeExpansion: true
+parameters:
+  cas-type: cstor
+  # cstorPoolCluster should have the name of the CSPC
+  cstorPoolCluster: cstor-storage
+  # replicaCount should be <= no. of CSPI
+  replicaCount: "3"
+
+----
+pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: demo-cstor-vol
+spec:
+  storageClassName: cstor-csi
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+
+check after applying the new SC, and that a new PVC  and new PV (on bound),
+
+check health and replicas:
+kubectl get cstorvolumeconfig -n openebs <<<should be BOUND
+kubectl get cstorvolume -n openebs <<<should be HEALTHY
+kubectl get cstorvolumereplica -n openebs 
+
+create an app to test volumes and storage creation:
+
+busybox.yaml:
+----
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+  namespace: default
+spec:
+  containers:
+  - command:
+       - sh
+       - -c
+       - 'date >> /mnt/openebs-csi/date.txt; hostname >> /mnt/openebs-csi/hostname.txt; sync; sleep 5; sync; tail -f /dev/null;'
+    image: busybox
+    imagePullPolicy: Always
+    name: busybox
+    volumeMounts:
+    - mountPath: /mnt/openebs-csi
+      name: demo-vol
+  volumes:
+  - name: demo-vol
+    persistentVolumeClaim:
+      claimName: demo-cstor-vol
+---
+
+TROUBLESHOOTING
+-----
+if webhook failed, or wrong certificate:
+get name of secret by:
+kubectl get secrets -n openebs
+kubectl delete secret openebs-cstor-admission-secret -n openebs
+ kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -n openebs
+
+--copy the name to here:
+kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io openebs-cstor-validation-webhook
+
+after deletion of 2 secrets should be applied
+
+------

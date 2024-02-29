@@ -1,0 +1,158 @@
+https://jfregdemo1.jfrog.io/ui/packages
+
+
+--
+0)select repos
+create new repo
+or set me up on existing repo, when you mark it from the list
+generate token
+
+1)to use with credentials and hook artifactory to jenkins credentials:
+get token as the password, and username as docker login
+and id is the id I've created in my credentials in jenkins-
+which is the first steps:
+    Dashboard>Manage Jenkins>Credentials>System>Global credentials (unrestricted)
+
+2)after we've done registering the credentials over jenkins, we can input it in the configure the pipeline DSL.
+the ID will remain what we've put in the jenkins created cred. and the username=user, password=pass,
+which are both just env. variables we put in the bash in the command later, for docker login
+
+3) getting the proper push command from jfrog artifactory-
+go to push, in the same page of generate token
+and now we see its jfrog repo, with different name which we copy,
+--->first to the build
+but because we use it both to build and to push, we can use a def variable to use it twice or more:
+we put this :
+def image = " <pasted from jfrog push><image name>:${BUILD_NUMER}"<< or whatever the env. var. fro the build was.
+under node block, in the first lines.
+
+and to use it like this ${image}
+don't forget image name also!
+
+-------------------------------------------
+
+script for artifactory in docker-war:
+node('docker') {
+    def image = "jfregdemo1.jfrog.io/app-docker/hello-war:${env.BUILD_NUMBER}" 
+    stage('checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/hello-world-war.git']])
+    }
+    stage('build') {
+        sh "docker build -t ${image} ."
+    }
+    stage('test') {
+       
+        sh "docker run -itd --name hello-war -p 8888:8080 ${image}"
+       
+        sh "sleep 5"
+        sh "curl -v localhost:8888/hello-world-war-1.0.0/" 
+        sh "sleep 5"
+        sh "docker stop hello-war && docker rm hello-war"
+        
+    }
+    stage('push to artifactory') { 
+        withCredentials([usernamePassword(credentialsId: "jfrog-credentials", passwordVariable: "pass", usernameVariable:"user")]){
+        sh "docker login  -ur_e_l_g@yahoo.com -p $pass jfregdemo1.jfrog.io"    
+        sh "docker push ${image}"
+        }
+    }
+
+}
+--------------------------
+
+same script with static code analysis scan:
+
+-----------
+
+node('docker') {
+    def image = "jfregdemo1.jfrog.io/app-docker/hello-war:${env.BUILD_NUMBER}" 
+    stage('checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/hello-world-war.git']])
+    }
+  stage('build and scan') {
+    parallel(
+        firstrun: {
+            stage('build') {
+                sh "docker build -t ${image} ."
+            }
+        },
+        secondrun: {
+            stage('Static code analysis Scan') {
+                // Perform static code analysis scan here
+            }
+        }
+    )
+}
+    stage('test') {
+       
+        sh "docker run -itd --name hello-war -p 8888:8080 ${image}"
+       
+        sh "sleep 5"
+        sh "curl -v localhost:8888/hello-world-war-1.0.0/" 
+        sh "sleep 5"
+        sh "docker stop hello-war && docker rm hello-war"
+        
+    }
+    stage('push to artifactory') { 
+        withCredentials([usernamePassword(credentialsId: "jfrog-credentials", passwordVariable: "pass", usernameVariable:"user")]){
+        sh "docker login  -ur_e_l_g@yahoo.com -p $pass jfregdemo1.jfrog.io"    
+        sh "docker push ${image}"
+        }
+    }
+
+}
+
+-----------
+
+complete script with scanner and sonarQube on cloud(scanner in the salve!)
+node('docker') {
+    // Define variable
+    def image = "jfrogdemolidor.jfrog.io/app-docker/node-hello-new:${env.BUILD_NUMBER}"
+    stage('Checkout') {
+    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/lidorg-dev/node-hello.git']])
+    }
+    stage("Build & Scan") {
+      
+            parallel Build: {
+                       stage("Build") {
+                            sh "docker build -t ${image} ."
+                            }
+            },
+            sonarCloud: {
+               stage("Static code Analysis Scan") {
+                            sh "sonar-scanner"
+                                }  
+            }
+                        
+                      
+               
+        
+        
+    }
+ 
+    stage('Test') {
+    sh "docker run -itd --name node-hello-new -p 3000:3000 ${image}"
+    sh "sleep 4"
+    sh "curl localhost:3000"
+    sh "docker stop node-hello-new && docker rm node-hello-new"
+    }
+    stage('Push to Artifactory') {
+        withCredentials([usernamePassword(credentialsId: 'artifactory-cloud', passwordVariable: 'pass', usernameVariable: 'user')]) {
+     sh "docker login -u $user -p $pass jfrogdemolidor.jfrog.io"
+    sh "docker push ${image}"
+            }
+   
+    }
+}
+
+---this script should be pasted into the git file of sonar.project.proporties (into node-hello)
+
+sonar.projectKey=node-hello
+sonar.host.url=https://sonarcloud.io
+sonar.login=1399a4074fc4c596b4fcdde34fd3126cab84a081
+sonar.organization=lidorg-dev-github
+#sonar.sources=src
+#sonar.test=src/test
+#sonar.test.inclusions=src/**/*.test.js#sonar.javascript.lcov.reportPaths=./coverage/lcov.info
+#sonar.testExecutionReportPaths=./coverage/test-reporter.xml
+sonar.sourceEnconding=UTF-8

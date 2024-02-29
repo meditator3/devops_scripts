@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  drupal:
+    image: drupal:8.3.7-apache
+    ports:
+      - 8080:80
+    networks:
+      - drupal-network
+    volumes:
+      - "./modules:/var/www/html/modules"
+      - "./profiles:/var/www/html/profiles"
+      - "./sites:/var/www/html/sites"
+      - "./themes:/var/www/html/themes"
+  postgres:
+    image: postgres:9.6.5-alpine
+    environment:
+      - POSTGRES_DB=drupal
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    networks:
+      drupal-network:
+        aliases:
+          - "db"
+    volumes:
+      - "./psql:/var/lib/postgresql/data"
+networks:
+  drupal-network:

@@ -1,0 +1,76 @@
+#version of...? # REMOVE ALL COMMENTS ON THIS OR ANY YML FILES!
+version: "3.8"
+#name of the services
+services:
+  drupal: #the name of the image, first container we create:
+    image: drupal #no need to "expose", just write the ports
+    ports:
+      - 8080:80
+      # no env. variables in here
+    networks: # this also needs to be initialized(see bottom)
+      - drupal-network # just a name we choose for the network we create
+    # we don't need alias for this, because he connects to the db not the opposite.
+    #volume creation:
+      - ./modules:/var/www/html/modules
+      - ./profiles:/var/www/html/profiles
+      - ./sites:/var/www/html/sites
+      - ./themes:/var/www/html/themes
+  postgres: # second container
+    image: postgres:9.6.5-alpine # important to check compatibilities
+    environment:
+      - POSTGRES_DB=drupal
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    networks:
+      drupal-network: # different format than before because we define alias in this network
+        # we already created with drupal
+        aliases:
+          - "db"
+  volumes:
+    - ./psql:/var/lib/postgresql/data
+networks:
+  drupal-network:     
+
+
+
+--------------
+docker compose for react-java0mysql (from git), mysql and java on backend, and react on frontend.
+
+----
+version: '1.2'
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    networks:
+      - react-java-mysql 
+  mysql:
+    image: mysql:8.0.27 
+    environment:
+      - "MYSQL_USER=root"
+      - "MYSQL_PASSWORD=db-57xsl"
+      - "MYSQL_DATABASE=mysql"
+    ports: 
+      - 3306:3306
+    volumes:
+      - mysqldb:/var/lib/mysql  
+    networks:
+      - react-java-mysql 
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile       
+    ports: 
+      - 3000:3000
+    networks:
+      - react-java-mysql 
+volumes:
+  mysqldb:
+  java-vol:      
+
+networks:
+  react-java-mysql:

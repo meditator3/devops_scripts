@@ -1,0 +1,24 @@
+(from master1)
+
+swapoff -a!!!
+
+You can now join any number of the control-plane node running the following command on each as root:
+
+kubeadm join 192.168.14.179:6443 --token 8f4e75.mrz62c1sk9jkdbpy \
+        --discovery-token-ca-cert-hash sha256:6a845ae9f4cd71b5ae6c60555b77d1e6df6c7d43a64311460400a1ac6119d0b3 \
+        --control-plane --certificate-key 0c4692b3fefc967873264604aad6bd2f2f646e1fc7f32a457d254f6983ff0a2f --v=8
+
+
+
+
+
+
+for workers:
+
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 192.168.14.179:6443 --token 8f4e75.mrz62c1sk9jkdbpy \
+        --discovery-token-ca-cert-hash sha256:6a845ae9f4cd71b5ae6c60555b77d1e6df6c7d43a64311460400a1ac6119d0b3 --v=8
+
+

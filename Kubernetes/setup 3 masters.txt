@@ -1,0 +1,408 @@
+k8s-1  static ip: 192.168.14.180/24
+
+disabling SElinux (security enhancment that can interfere with kuberenetes)
+https://www.tutorialspoint.com/how-to-install-a-kubernetes-cluster-on-centos-7
+
+until the firewall added ports(included)-or disable completely
+
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+(now-disable swap page file)
+
+swapoff -a
+
+edit this:
+
+vi /etc/fstab
+
+comment # the last mount command path
+
+עושים ריבוט
+ובודקים שאין SWAP
+free -h
+
+cat >>/etc/sysctl.d/kubernetes.conf<<EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sysctl --system
+
+installing containerD:
+
+https://www.hostafrica.com/blog/kubernetes/kubernetes-cluster-centos-stream-containerd/
+(typo on the guide: with sysctl --system)
+
+before dnf-
+yum install dnf
+dnf install 'dnf-command(dnf-command)'
+and then do the dnf config-manager
+
+installing kuberentes(same guide)
+add kubernetes repo: first 
+vi /etc/yum.repos.d/kubernetes.repo
+then copy the config with the EOF
+
+until(included) kubelet kubeadm dubectl install
+
+EDIT ETC HOSTS:
+127.0.0.1 localhost <name of machine, in this case master1>
+so-
+
+127.0.0.1 localhost master1
+<next line stays>
+<ip of cluster's machines> <name of machine>
+192.168.14.180 master1
+192.168.14.181 master2
+192.168.14.182 master3
+192.168.14.183 worker1
+192.168.14.184 worker2
+
+example:
+127.0.0.1   localhost master1
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
+192.168.14.180 master1
+192.168.14.181 master2
+192.168.14.182 master3
+192.168.14.183 worker1
+192.168.14.184 worker2
+
+
+systemctl enable containerd
+systemctl start containerd
+systemctl enable kubelet.service
+
+
+
+add to /etc/resolve.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+ TO EACH MACHINE(if you didnt clone)!
+also add to /etc/NetoworkManager/Networkmanager.conf
+in [main]
+dns=none
+--this will make network manager work with resolv.conf
+
+reboot
+
+------   FROM THIS POINT : POWER OFF & CLONE TO WORKERS -------
+in the cloning: select : Generate new MAC and network address
+
+אפשר לבחור גם CLONE EVERYTHING שישמור לנו את הSNAPSHOTS
+
+לשנות בכל מכונה:
+שם
+IP
+/ETC/HOSTS 
+לשים את השם הנכון של המכונה
+
+SNAPSHOT של כולם--------------------------
+
+
+להכין 
+LOADBALANCER
+(make a machine with centos 7 ) 
+HAproxy IP:192.168.14.179
+(https://medium.com/@sujitthombare01/haproxy-smart-way-for-load-balancing-in-kubernetes-c2337f61d90b)-???
+yum install haproxy
+systemctl enable haproxy
+systemctl start haproxy
+
+vi /etc/haproxy/haproxy.cfg
+
+add these after backend app:
+
+frontend kubernetes-frontend
+        bind 192.168.14.1:6443
+        mode tcp
+        option tcplog
+        default_backend kubernetes-backend
+backend kubernetes-backend
+	mode tcp
+	option tcp-check
+	balance roundrobin
+	server master1 192.168.14.180:6443 check fall 3 rise 2
+	server master1 192.168.14.181:6443 check fall 3 rise 2
+	server master1 192.168.14.182:6443 check fall 3 rise 2
+
+
+
+TROUBLESHOOTING:
+journalctl -u haproxy
+
+
+
+---------------not fininshed, haven't worked it,
+the problems:
+end point should be load balancer, but kubelet won't authenticate it. no creds for the HAproxy.
+-----------------
+לוודא קודם שיש CONTAINERD רץ
+run on 1 master:
+kubeadm init --upload-certs --apiserver-advertise-address=<THE IP OF THE MASTER> --pod-network-cidr=10.0.0.0/16
+
+get cluster config:
+kubectl get cm kubeadm-config -n kube-system -o yaml
+
+copy paste from apiServer >>scheduler : {} and INDENT PROPERLY into the file kubeadm-config.yaml
+
+on the existing master node:
+kubeadm init phase upload-certs --upload-certs --config kubeadm-config.yaml
+
+will get output like this:
+[upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
+[upload-certs] Using certificate key:
+6a2f496e172b16584f3700da0427d6e87b3ff06a67383c1bb05cf504128e4465
+
+kubeadm token create --print-join-command
+copy paste that to another master.
+
+on the other masters:
+kubeadm join --discovery-token abcdef.1234567890abcdef --discovery-token-ca-cert-hash sha256:1234..cdef --control-plane <IP of the first master>:6443
+
+endpoint ip is the loadbalancer ip, that will be later setup.
+
+----------------------------------------------------
+end of not finished-----------------
+
+
+---new try----
+ON THE HAPROXY SERVER:
+disable SElinux 
+
+vi /etc/haproxy/haproxy.cfg
+#---------------------------------------------------------------------
+# Example configuration for a possible web application.  See the
+# full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    #
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    #
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+listen stats
+    bind :6443
+    mode http
+    stats enable
+    stats uri /
+
+frontend local-server
+        bind *:6443
+        mode tcp
+        option tcplog
+        default_backend kube-apiserver
+
+backend kube-apiserver
+        mode tcp
+
+        balance roundrobin
+        server master1 192.168.14.180:6443 check
+        server master2 192.168.14.181:6443 check
+        server master3 192.168.14.182:6443 check
+[root@ngins-haproxy ~]# vi /etc/haproxy/haproxy.cfg
+[root@ngins-haproxy ~]# systemctl restart haproxy
+[root@ngins-haproxy ~]# cat /etc/haproxy/haproxy.cfg
+#---------------------------------------------------------------------
+# Example configuration for a possible web application.  See the
+# full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    #
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    #
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user        haproxy
+    group       haproxy
+    daemon
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+
+listen stats
+    bind :6443
+    mode http
+    stats enable
+    stats uri /
+
+frontend local-server
+        bind *:6443
+        mode tcp
+        option tcplog
+        default_backend kube-apiserver
+
+backend kube-apiserver
+        mode tcp
+
+        balance roundrobin
+        server master1 192.168.14.180:6443 check
+        server master2 192.168.14.181:6443 check
+        server master3 192.168.14.182:6443 check
+        server worker1 192.168.14.183:6443 check
+        server worker2 192.168.14.184:6443 check
+
+-----
+
+check haproxy is active. might need reboot.
+
+------
+ON MASTER NODE:
+yum install nc
+
+check connectivity with HAproxy server:
+nc -v <ip of loadbalancer> 6443
+
+if works:
+kubeadm init --control-plane-endpoint <ip of loadblancer>:6443 --upload-certs
+example:
+kubeadm init --control-plane-endpoint 192.168.14.179:6443 --upload-certs --pod-network-cidr=10.0.0.0/16
+
+^^^^^ we need also sockets, so this init is bad:
+
+MAKE SURE HAPROXY IS ONLINE
+VERIFY:
+SWAPOFF -a !!!!
+
+kubeadm init \
+    --upload-certs \
+   --pod-network-cidr 10.0.0.0/16 \
+    --control-plane-endpoint 192.168.14.179:6443 --v=7
+
+export KUBECONFIG=/etc !!!!!
+without it won't work!
+
+reboot between each stage
+VERIFY DATES ON ALL MASTER AND WORKER SERVERS FIRST
+CHECK kubectl get nodes on first master!
+
+we need CNI plugin (flannel of calico) for the nodes to comminucate,
+otherwise we keep gettig CONNECTION REFUSED 22
+to be installed on ALL masters and workers!
+also take the kube-flannel.yaml from this folder. because you need to change network
+
+
+troubleshooting:
+kubeadm reset : מחזיר הכל לפני kubeadm init
+
+repeated errors in installation - build a new machine for the node
+to solve:
+*****API NOT CONNECTED because no kubeconfig*****
+
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+or to make it permanent:
+Using systemd Service Units:
+
+You can create a systemd service unit that sets the environment variable and ensure it's loaded during boot.
+
+    Create a file named   vi /etc/systemd/system/kubeconfig-env.service
+
+    Add the following content to the service unit file:
+
+   
+
+[Unit]
+Description=Set KUBECONFIG environment variable
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c "echo 'KUBECONFIG=/etc/kubernetes/admin.conf' >> /etc/environment"
+
+[Install]
+WantedBy=multi-user.target
+
+Enable and start the service:
+
+
+
+sudo systemctl enable kubeconfig-env.service
+sudo systemctl start kubeconfig-env.service
+
+
+

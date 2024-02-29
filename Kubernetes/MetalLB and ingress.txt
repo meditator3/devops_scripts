@@ -1,0 +1,179 @@
+
+https://www.adaltas.com/en/2022/09/08/kubernetes-metallb-nginx/
+
+
+
+Tutorial
+Step 1: Installation of MetalLB
+
+To practice the installation of MetalLB on your local environment, the following manifests must be deployed on the control-plane:
+
+    namespace.yaml creates a MetalLB namespace;
+    metallb.yaml deploys the MetalLB controller and speakers, as well as the role bindings and listeners that are needed.
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
+
+Once MetalLB is installed, we must configure an IP address pool. By deploying it, the controller allocates IP addresses for the load-balancer. The IP address pool allows for one or many IP addresses, depending on what we need. The allocated addresses must be part of the host network of our cluster and unique.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: metallb-system
+  name: config
+data:
+  config: |
+    address-pools:
+    - name: default
+      protocol: layer2
+      addresses:
+      - {ip-start}-{ip-stop}
+
+Save this file under the name config-pool.yaml and simply apply it using kubectl apply -f config-pool.yaml.
+
+    Note: It is possible to deploy more than one IP address pool.
+
+Step 2: Testing
+
+To avoid any confusion due to the name of the server we deploy, in the remaining sections of the article, we name:
+
+    nginx-ingress as nginx-ingress which is the ingress controller that exposes services;
+    nginx server image as nginx-server which is a web server corresponding to a test service that we expose;
+
+We deploy and expose nginx-server on a node to test if the installation of MetalLB was successful:
+
+kubectl create deploy nginx --image nginx
+kubectl expose deploy nginx --port 80 --type LoadBalancer
+
+To access the load-balancer type service, we need to retrieve the EXTERNAL-IP of the nginx-server.
+
+INGRESS_EXTERNAL_IP=`kubectl get svc nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
+curl $INGRESS_EXTERNAL_IP
+
+This is the desired result:
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+To clean up what we used during testing, we delete what we created:
+
+kubectl delete deployment nginx
+kubectl delete svc nginx
+
+Pairing MetalLB and nginx-ingress
+
+In the previous part, we managed to deploy a service and make it accessible outside of the cluster. However, it is not satisfactory because a different IP address is allocated every time we deploy a service. We wish to be able to access every service from a single IP address. To achieve this, we use nginx-ingress.
+
+Ingresses are a way to expose services outside of the cluster. It allows for hosts and routes to be created, thus allowing DNS resolutions of IP addresses. nginx-ingress listens and manages every service exposed on ports 80 and 443. It allows for two or more services to be exposed on the same IP address, using different hosts which means that a single IP is effectively used.
+
+In cloud Kubernetes clusters, ingresses are exposed through load-balancers. In bare metal clusters, ingresses are usually exposed through NodePort or Host Network, which is inconvenient because it exposes a node of your cluster, thus creating a single point of failure. If this node goes down, the access to the services accessible through this node defaults on another node, meaning that you must change the IP address that you previously used, to another one of your nodes IP address.
+
+Using both MetalLB and nginx-ingress allow us to get even closer to a proper load-balancer by layering the access to the services. The IP address remains the same, even if a node goes down thanks to the failover mechanism of MetalLB, and the services are now centralized thanks to nginx-ingress.
+
+Using the previously set assumptions, we update the diagram as such:
+
+Schema describing MetalLB functioning with nginx gateway
+
+ConfigMap provides the IP pool to the load-balancer services, and the controller elects a speaker pod, as viewed previously.
+
+1: A request arrives on http://nginx.example.com. It is resolved as the load-balancer IP of the nginx-ingress-controller: 192.168.120.200.
+
+2: Traffic exits the service to the elected metallb-speaker which communicates with the other metallb-speaker pods to redirect the traffic to the nginx-ingress-controller pod.
+
+3: Traffic goes to the nginx-ingress-controller pod.
+
+4: nginx-ingress-controller pod sends the traffic to the service that was requested with the hostname nginx.example.com. nginx-server is contacted and serves the website to the outside client.
+Step 1: Installation of nginx-ingress
+
+We deploy the following manifest on a control-plane node:
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.2.0/deploy/static/provider/cloud/deploy.yaml
+
+Step 2: Verification
+
+Using this command, we check if the EXTERNAL-IP field is pending or not.
+
+kubectl get service ingress-nginx-controller --namespace=ingress-nginx
+
+Normally, the first address of the config-map should be allocated to the ingress-nginx-controller.
+Practical example
+
+To try out our new installation, we deploy two services without specifying the type which defaults to ClusterIP. First, nginx-server:
+
+    Create a deployment;
+    Expose the deployment;
+    Create an ingress on the nginx.example.com hostname.
+
+kubectl create deployment nginx --image=nginx --port=80
+kubectl expose deployment nginx
+kubectl create ingress nginx --class=nginx \
+  --rule nginx.example.com/=nginx:80
+
+Follow the same steps for the deployment of an httpd server, which is similar to nginx-server and is simply a service that we expose, acting as a “Hello World”, on the httpd.example.com hostname:
+
+kubectl create deployment httpd --image=httpd --port=80
+kubectl expose deployment httpd
+kubectl create ingress httpd --class=nginx \
+  --rule httpd.example.com/=httpd:80
+
+We shall access the websites through the host computer to see if it was exposed correctly. To make it easier to access the websites, we need to add DNS rules by appending the /etc/hosts file on the host computer. We obtain the ingress-nginx-controller EXTERNAL-IP field:
+
+INGRESS_EXTERNAL_IP=`kubectl get svc --namespace=ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'`
+echo $INGRESS_EXTERNAL_IP
+
+After retrieving the IP, we put the following line in /etc/hosts, replacing the INGRESS_EXTERNAL_IP variable with the one previously copied: $INGRESS_EXTERNAL_IP nginx.example.com httpd.example.com.
+
+Now, accessing the services is done on the same IP address using DNS. With curl, checking if the pages are working as intended is done by curling the nginx.example.com and httpd.example.com hostnames, or by opening your internet explorer with the hostnames on the host computer.
+
+curl nginx.example.com
+curl httpd.example.com
+
+In case changing /etc/hosts is not possible, curling with a header indicating the hostname on the host computer in an alternative option:
+
+curl $INGRESS_EXTERNAL_IP -H "Host: nginx.example.com"
+curl $INGRESS_EXTERNAL_IP -H "Host: httpd.example.com"
+
+You expect to see “It works” from httpd.example.com and the same thing as in the testing of MetalLB from nginx.example.com.
+
+To clean up what we used during testing, we delete what we created:
+
+kubectl delete deployment nginx
+kubectl delete svc nginx
+kubectl delete ingress nginx
+kubectl delete deployment httpd
+kubectl delete svc httpd
+kubectl delete ingress httpd
+
+Common issues
+
+Sometimes, nginx-ingress has a problem related to web hook notifications: Internal error occurred: failed calling webhook "validate.nginx.ingress.kubernetes.io".
+
+First, verify that all nginx-ingress pods are up and running. You must wait for them to be ready, and this is done by using the kubectl wait --for=condition=ready --namespace ingress-nginx --timeout=400s --all pods command.
+
+If this didn’t solve the problem, it was mentioned in this GitHub issue which dictates that a simple workaround is to delete the validating webhook configuration like so: kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission.
+Conclusion
+
+Using a load-balancer in the form of MetalLB and using it in tandem with nginx-ingress to create a single point of contact for the services is now within your reach. It is convenient to use them as a failover mechanism for bare-metal and on-premise clusters. They are easy-to-use softwares, which, although they come with some limitations for the CNI, provide a great user experience, and are very easy to deploy.
+
+Everything is not perfect, as it also comes with a slow response time, as well as possible bottlenecks due to the fact that it is not a true load-balancer distributing packets. It is still a useful tool that makes life overall easier.

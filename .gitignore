@@ -8,4 +8,5 @@ key.pem
 .docker/
 .hiddenfolder/
 .bashrc
+EKS\ access\ keys.txt
 

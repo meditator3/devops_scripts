@@ -1,0 +1,11 @@
+# install ingress controller with NLB
+helm command:
+helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx  --namespace ingress-nginx --create-namespace \
+  --set-string controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-type"="nlb" (edited) 
+
+
+guide:
+
+https://amod-kadam.medium.com/setting-up-nginx-ingress-controller-with-eks-f27390bcf804
+
+need also to change ETC hosts in the windows/system32/drivers/etc to work with the LB in the DNS name

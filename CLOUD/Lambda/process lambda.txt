@@ -1,0 +1,29 @@
+this is a lambda which creates EBS snapshot and mount the snapshot to a volume in a different AZ so that there will be backup
+in case the AZ goes off.
+
+
+can take template/blueprint, not start from scratch
+
+(batch job=
+
+we chose author from scratch:
+
+name of function: 
+
+runtime= python 3.12
+
+VPC what we are
+SEC.GROUP normal
+
+----
+
+before writing the code we need paramaters. 
+we prefer we get a name and pass it to the different AZ
+
+
+used this guide: https://blog.guilleojeda.com/automate-aws-ebs-snapshots-email-notifications-python-boto3
+
+there is some notification which is not needed?
+
+
+now we need to create another function which creates another volume in a different AZ

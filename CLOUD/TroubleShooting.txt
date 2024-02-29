@@ -1,0 +1,10 @@
+problems with key pairs:
+using aws cli(installed on windows and used via git bash console),
+
+- ssh-keygen -lf ariel-key.pem
+
+aws ec2 describe-key-pairs --region eu-north-1
+
+and compare the signatures
+
+aws ec2 describe-instances --region eu-north-1 --query 'Reservations[*].Instances[*].[InstanceId,KeyName]' --output table

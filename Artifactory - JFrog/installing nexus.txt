@@ -1,0 +1,18 @@
+https://www.fosstechnix.com/how-to-install-nexus-repository-on-ubuntu/
+
+
+
+user nexus
+password nexus
+
+
+login for machine ubunto-docker 
+vagrant-vagrant
+
+machine ip on bridged:
+192.168.14.198
+
+ in browser nexus psw usr:
+
+admin
+admin

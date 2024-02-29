@@ -1,0 +1,59 @@
+LB is wrong, in records, so we need to create new NLB
+and setup helm chart for ingress again using:
+https://amod-kadam.medium.com/setting-up-nginx-ingress-controller-with-eks-f27390bcf804
+
+and also get helm chart for prometheus, via :
+
+https://github.com/prometheus-community/helm-charts
+
+
+and change values:
+he searched via ingress, and chose to change:
+line 376 ingress : true
+line 381 ingressclassname : nginx
+hosts:
+ -alertmanager.arieldevops.tech
+
+line 962 ingress: true
+967 remove comment, for ingressclassname
+hosts:
+ - grafana.arieldevops.tech
+
+same thing for prometheus hosts and ingresss/ingress classname
+
+
+only with grafan: paste address
+user:admin
+psw: promoperator
+
+
+
+
+
+after putting records for alert_manager, grafana and prometheus in route53
+
+
+
+
+create ns montoring in kubectl
+
+to install the "monster" prometheus via helm after updated values
+helm install kube-prom -n monitoring -f ariel-values promethius-community/kube-prometheus-stack
+
+if installation not working use:
+helm ls -n monitoring
+
+and if there's helm in that ns, delete-
+helm delete kube-prom -n monitoring
+
+and start again with the install
+or update, with same command like install with the values file
+if install works:
+paste dns names of grafana or alertmanager, and remember it doesn't save the meterics, you need to export to json, or other
+to save stats.
+you need to change the values to create a new PVC claim to setup the chart to save the stats/metrics.
+
+if you want to get KPI(meter for getting monitors for value of company!)
+you ask for developers for service witha port to give to prometheus, and for the application of 
+the company. and prometheus builds the meterics, and bring a new dashboard with all the new data and meterics of 
+what prometheus collected 

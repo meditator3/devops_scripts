@@ -1,0 +1,2 @@
+kubeadm join 192.168.14.200:6443 --token mxl7wt.ndne3qjwasgxffgc \
+        --discovery-token-ca-cert-hash sha256:4d3f7f863ff6e4434ab7e6116906d1dac9ae4f94586799700e30dcf6530fad6a

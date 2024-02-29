@@ -1,0 +1,5 @@
+ssh -i "ariel-key.pem" ubuntu@<ip machine(public)>
+change nginx port:
+vi /etc/nginx/sites-enabled/default
+
+change to 8080 8080

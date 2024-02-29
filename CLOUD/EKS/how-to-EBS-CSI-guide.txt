@@ -1,0 +1,24 @@
+ebs storage class is newer storage class that creates new volumes
+the default gp2 doesn't create new volumes automatically by amazon
+
+ git clone https://github.com/kubernetes-sigs/aws-ebs-csi-driver.git
+
+
+cd aws-ebs-csi-driver/examples/kubernetes/dynamic-provisioning/
+
+can be used for gp3(newer HD):
+echo "parameters:
+  type: gp3" >>manifests/storageclass.yaml
+ 
+kubectl apply -f /manifests/storageclass.yaml
+
+test:
+kubectl get sc
+kubectl get pods
+kubectl get pvc
+ 
+
+the pvc should be BOUND
+
+another command ??
+kubectl patch storageclass ebs-sc -p '{"metadata": {"annotations":{"storageclass.kubernetes.io/is-default-class":"true"}}}'

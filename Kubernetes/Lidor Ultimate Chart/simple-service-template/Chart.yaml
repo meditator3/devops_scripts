@@ -1,0 +1,8 @@
+apiVersion: v1
+name: simple-service-template
+version: 0.0.1
+appVersion: 0.0.1
+description: Simple service template is a chart used for the most common form of deployment - for services using environment variables, NFS shares, affinity rules, exposing ports or ingresses (for access from outside of the K8S) and so on..
+sources:
+maintainers:
+- name: DevOps Team

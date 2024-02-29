@@ -1,0 +1,54 @@
+https://www.lisenet.com/2021/install-metallb-and-istio-ingress-gateway-with-mtls-for-kubernetes/
+
+
+Istio:
+manages microservices, allows more security, observability on them, and reslience, and also policy enforcment.
+
+kiali:
+your goto GUI for istio, provides graphs visialization, traffic monitoring, tracing and metrics.
+
+in general:
+simplifies orchestration of microservices, and orchestration.
+
+
++ we need metallb too to interface with ingress istio
+
+more detail:
+Istio provides TLS shakes which is encrypted data transfers between microservices/apps/containers/servers, instead of making changes to the app itself.
+
+how metallb interfaces with istio?
+MetalLB is used here in order to provide an IP address for the Istio IngressGateway service of LoadBalancer type thus emulating a cloud deployment. This is used to avoid NodePort implementations with Istio as they are not to be used due to Istio design.
+ 
+
+installation:
+install metalLB:
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.9.6/manifests/namespace.yaml
+download from here deplyment and configmap:
+
+https://github.com/lisenet/kubernetes-homelab/tree/master/kubernetes/metallb
+
+apply.
+
+
+if you want secret:
+kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
+
+check all is working:
+kubectl get all -n metallb-system
+
+GET ISTIO:
+copy paste these files: istio-kubernetes.yml and istio-operator.yaml (and not wget because it wont be indented), from here-
+
+https://github.com/lisenet/kubernetes-homelab/tree/master/kubernetes/istio
+
+not good-ruined the cluster.
+
+detailed docs
+https://istio.io/latest/docs/setup/getting-started/#download
+
+
+apply both
+
+install kiali from here:
+https://github.com/lisenet/kubernetes-homelab/tree/master/kubernetes/istio-addons/kiali

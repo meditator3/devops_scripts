@@ -1,0 +1,302 @@
+made in github actions on hello-python repo
+-----------------------------------------------------------
+
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+ 
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag my-image-name:latest
+    - name: run & test Container
+      run: docker run -itd --name python-hello -p 8080:8080   my-image-name:latest
+    - run: sleep 5 && curl localhost:8080
+    - name: change image name 
+      run: docker tag my-image-name:latest lidorlg/github-repo:latest
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+   
+
+#  Test:
+#    needs: Build
+#    runs-on: ubuntu-latest
+#    steps:
+   # 
+#    - name: run & test Container
+#      run: docker run -itd --name python-hello -p 8080   my-image-name:latest
+
+---------------------------------
+
+---this is self runner script for same repo hello-world but without docker file! -------
+
+name: CI-Python
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+  
+jobs:
+  Build:
+    runs-on: self-hosted
+    
+    steps:
+    - uses: actions/checkout@v3
+    - name: install requirments
+      run: pip3 install -r requirements.txt -t .
+#    - uses: actions/cache@v3
+#      with:
+#        path: .  # Note that this path is not influenced by working-directory set in defaults, for example
+#        key: python-cache
+
+  Test:
+    needs: Build
+    runs-on: self-hosted
+    steps:
+#    - uses: actions/cache@v3
+ #     with:
+ #       path: .  # Note that this path is not influenced by working-directory set in defaults, for example
+  #      key: python-cache
+    - name: run & test the app
+      run: python3 app.py &
+    - run: sleep 5 && curl localhost:8080
+  Package:
+    needs: Test
+    runs-on: self-hosted
+    steps:
+
+    - name: Archive Release
+      uses: thedoctor0/zip-release@0.7.1
+      with:
+        type: 'zip'
+        filename: 'release.zip'
+        exclusions: '*.git* /*node_modules/* .editorconfig'
+    - name: Upload Release
+      uses: ncipollo/release-action@v1.12.0
+      with:
+         artifacts: "release.zip"
+         token: ${{ secrets.GITHUB_TOKEN }}
+      
+
+
+
+-------------------------------------------------------------------
+workflow issues!
+
+# This is a basic workflow to help you get started with Actions
+
+name: Create Issue on Commit
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "develop" ]
+#  pull_request:
+#    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+#  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  create_commit:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    #  - uses: actions/checkout@v3
+
+      # Runs a single command using the runners shell
+       - name: create issue using REST API
+         run: |
+           curl --request POST \
+           --url https://api.github.com/repos/${{ github.repository }}/issues \
+           --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+           --header 'content-type: application/json' \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+           --data '{
+              "title": "automated Issue for commit: ${{ github.sha }}",
+              "body": "This issue was automatically created by the github actions workflow **${{ github.workflow }}**. \n\n The commit has was: _${{ github.sha }}_."
+              }'
+
+--------------------------------------------------------------------------------------
+WORKFLOW TRIGGER OF THAT ISSUE WORKFLOW!
+
+# This is a basic workflow to help you get started with Actions
+
+name: trigger workflow
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    
+#  pull_request:
+#    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+#  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  trigger:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+        - name: trigger another workflow
+          run: |
+              curl -X POST https://api.github.com/repos/${{ github.repository }}/actions/workflows/issue.yml/dispatches \
+              -H 'Accept: application/vnd.github.v3+json' \
+              --header 'Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}' \
+              --data '{"ref": "${{ github.ref }}"}'
+
+--------------------------------------------------------------------------------------
+
+added slack notification for success build(same trigger script):
+name: trigger workflow
+on:
+  
+  push:
+    
+
+jobs:
+
+  trigger:
+    
+    runs-on: ubuntu-latest
+
+
+    steps:
+        - name: trigger another workflow
+          run: |
+              curl -X POST https://api.github.com/repos/${{ github.repository }}/actions/workflows/issue.yml/dispatches \
+              -H 'Accept: application/vnd.github.v3+json' \
+              --header 'Authorization: Bearer ${{ secrets.REPO_ACCESS_TOKEN }}' \
+              --data '{"ref": "${{ github.ref }}"}'
+
+  Slack:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Slack Notify
+          uses: rtCamp/action-slack-notify@v2.0.1
+          env:
+            SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+            SLACK_CHANNEL: devops-december-2022
+            SLACK_TITLE: Build Success
+            SLACK_COLOR: '#43a047'
+            SLACK_MESSAGE: ${{ github.repository }} Build Success
+            SLACK_USERNAME: ${{ github.repository }}
+
+
+--------------EXERCISE 2 from SLACK, BUILD DOCKER
+name: workflow for docker node
+on:
+  push:
+    branches: [ "master" ]
+jobs:
+  CheckOut-Build-Test:
+   runs-on: ubuntu-latest
+   steps:
+   # checkout stage
+    - uses: actions/checkout@v3
+    - name: build docker
+      run: docker build . --file Dockerfile --tag arielguez/my-image-name:latest
+    - name: run docker  
+      run: docker run -itd --name node-hello -p 3000:3000 arielguez/my-image-name:latest
+    - name: test app on browser
+      run: sleep 5 && curl localhost:3000 
+    - name: login to docker hub
+      uses: docker/login-action@v2
+      with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: docker push
+      run: docker push arielguez/my-image-name:latest
+
+-----------------EXERCISE 3 from slack:
+
+create a PR(pull request) workflow that create a Pull request from input parameter as variables : example ( source branch , Destination branch ) -> the workflow must be trigger manually (no auto trigger) - also run this on github hosted runner
+
+
+name: trigger by parameter
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: 'source branch'
+      destination_branch:
+        description: 'destination branch'
+
+jobs:
+  check-parameter:
+    runs-on: ubuntu-latest
+    steps:
+       - name: echo parameter
+         run: echo "${{ github.event.inputs.source_branch }} , ${{ github.event.inputs.destination_branch }}"
+       - name: create pull request with parameters
+         run: |
+              curl -L \
+                  -X POST \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}"\
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  https://api.github.com/repos/${{ github.repository }}/pulls \
+                  -d '{"title":"change pull request","body":"Please pull these awesome changes in!","head":"${{ github.event.inputs.destination_branch }}","base":"${{ github.event.inputs.source_branch }}"}'
+
+
+
+------------------------EXERCISE 4 FROM SLACK:
+exercise 4 : Create a workflow on different repo that trigger another workflow from exercise 3  and notify slack on new channel (named breakout-room-<number>)
+
+trigger1 repo yml:>>>>>>>>>>
+
+
+on:
+  push:
+jobs:
+  trigger-workflow-from-other-repo:
+  # triggered repo should be added "depository_dispatch: types [trigger-workflow]"
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger another workflow from node-hello repo
+        run: |
+            curl -X POST https://api.github.com/repos/meditator3/node-hello/actions/workflows/trigger-by-parameter.yml/dispatches \
+            -H 'Accept: application/vnd.github.v3+json' \
+            --header 'Authorization: Bearer ${{ secrets.PAT }}' \
+            -d '{
+                "ref": "refs/heads/master",
+                "inputs": {
+                  "source_branch": "secondary",
+                  "destination_branch": "master"
+                }
+              }'
+           
+>>>>also on the node-hello repo, this should be added to the yml workflow:
+
+  repository_dispatch:  # this is needed for allowing another repo to trigger this workflow
+    types: [trigger-workflow]             
+             
+  
+  

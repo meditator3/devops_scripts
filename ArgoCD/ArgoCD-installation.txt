@@ -1,0 +1,68 @@
+1)argocd via github >create ns argocd
+install via:
+1.5) install.yaml: change line 21711 under containers :
+				args:
+				 - --insecure
+because this is local, no certificate.
+
+2)kubectl apply -n argocd -f install.yaml     <file in this folder
+3)ingress rule:
+	kubectl get secret -n argocd
+4) kubectl get ingress -n argocd
+5) get ip of LB to put into the local: ping LB domain, copy IP. 
+	paste into etc/hosts of machine>> kubectl exec -it <pod> /bin/bash
+
+
+ingress installation: change to host accordingly
+
+
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argo-cd-ui
+  namespace: argocd
+  annotations:
+    ingress.kubernetes.io/proxy-body-size: 100M
+    ingress.kubernetes.io/app-root: "/"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - argocd.local
+    secretName: argocd-secret
+  rules:
+  - host: argocd.local
+    http:
+      paths:
+      - path: /
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: argocd-server
+            port:
+              name: http
+
+
+get admin and pasword
+user: admin
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+
+password: dfkhcO7xdhfABi5t
+
+check application works and see automated CD in action:
+repo: https://github.com/argoproj/argocd-example-apps.git
+
+>sync policy-auto
+>git repo path as above(for repo)
+> path: guestbook (according to PRIMARY/guestbook)
+> self heal
+> auto  create namespace!
+> default k8s cluster
+
+
+
+
+
+

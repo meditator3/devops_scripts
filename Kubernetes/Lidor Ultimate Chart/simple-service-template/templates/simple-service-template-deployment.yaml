@@ -1,0 +1,95 @@
+{{- range $fullName, $svc := .Values.services }}
+{{- $svc := mergeOverwrite (deepCopy $.Values.default) (deepCopy $svc) }}
+{{- if $svc.enabled }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+{{ toYaml $svc.labels | indent 4 }}
+spec:
+  replicas: {{ $svc.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ $fullName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $fullName }}
+      annotations:
+        {{- if $svc.configDirPath }}
+        checksum/config: {{ ($.Files.Glob (printf "files/%s/*" $fullName)).AsConfig | sha256sum | trunc 63 }}
+        {{- end }}
+    spec:
+      affinity:
+{{ $svc.affinity | toYaml | indent 8 }}
+      {{- if $svc.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ $svc.image.pullSecret }}
+      {{- end }}
+      containers:
+      - name: {{ $fullName }}
+        image: {{ $svc.image.repository }}/{{ $svc.image.name }}:{{ $svc.image.tag }}
+        imagePullPolicy: {{ $svc.image.pullPolicy }}
+        # Environment Variables
+        env: 
+        - name: ENVIRONMENT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: SERVICE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        {{- range $name, $value := $svc.envVars }}
+        - name: {{ $name }}
+          value: "{{ $value }}"
+        {{- end }}
+        ports:
+        {{- range $index, $service := $svc.service }}
+        - name: {{ $service.name | default (print "tcp-" $index) }}
+          containerPort: {{ $service.port }}
+          protocol: TCP
+        {{- end }}
+        resources:
+{{ $svc.resources | toYaml | indent 10 }}
+        volumeMounts:
+        # Config mounts
+        {{- if $svc.configDirPath }}
+        - name: config
+          mountPath: {{ $svc.configDirPath }}
+        {{- end }}
+        # NFS mounts
+        {{- range $name, $nfs := $svc.nfs }}
+        - name: {{ $name }}
+          mountPath: "{{ $nfs.mountPath }}"
+        {{- end }}
+        # hostPath mounts
+        {{- range $name, $hostPath := $svc.hostPath }}
+        - name: {{ $name }}
+          mountPath: "{{ $hostPath.mountPath }}"
+        {{- end }}
+      volumes:
+      # Config volumes
+      {{- if $svc.configDirPath }}
+      - name: config
+        configMap:
+          name: {{ $fullName }}-configmap
+      {{- end }}
+      # NFS volumes
+      {{- range $name, $nfs := $svc.nfs }}
+      - name: {{ $name }}
+        nfs:
+          server: "{{ $nfs.server }}"
+          path: "{{ $nfs.path }}"
+      {{- end }}
+      # hostPath volumes
+      {{- range $name, $hostPath := $svc.hostPath }}
+      - name: {{ $name }}
+        hostPath:
+          path: "{{ $hostPath.path }}"
+      {{- end }}
+{{- end }}
+{{- end }}

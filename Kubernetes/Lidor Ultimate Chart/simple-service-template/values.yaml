@@ -1,0 +1,112 @@
+# Default values for simple-service-template.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+############
+# Defaults #
+# ##########
+# All variables in this section are the defaults for all services
+# Each CAN be overriden by its counterpart per-service variable (true for subkeys also).
+
+default:
+
+# Default image definitions 
+  image:
+    repository: docker.io
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Default services behavior
+  enabled: true
+
+# Default pods replicas number definition
+  replicaCount: 1
+
+# Default pods resources limitations - will be applied on all pods created by this chart (Mendatory for HPA)
+  resources: {} 
+
+# Default HPA (Horizontal Pod Autoscalers) definitions - will be applied on all HPAs created by this chart
+  hpa: {}
+
+# Default pod affinity definitions - will be applied on all pods created by this chart
+  affinity: {}
+
+# Default labels will be applied on all deployments created by this chart
+  labels: {}
+
+# Default shared NFSs between all the deployments created by this chart
+  nfs: {}
+
+# Default hostPaths between all the deployments created by this chart
+  hostPath: {}
+
+# Default environment variables for all pods created by this chart
+  envVars: {}
+
+# Default config directory location - the location to which the files in the directories: 'files' and 'binaryFiles' are injected
+  configDirPath: ""
+
+############
+# Services #
+# ##########
+
+services: {}
+
+# Full example:
+# service-name: # Full Name (Will be used for all the service related resources deployment, service, hpa, ingress...)
+#   enabled: true
+#   image:
+#     name: image-name
+#     repository: some.repository.url:5000
+#     tag: latest
+#     pullPolicy: IfNotPresent
+#     pullSecret: docker-registry-credentials
+#   replicaCount: 3 # Will be also used as minReplicas if hpa is defined
+#   affinity: # Pod affinity definition (This example will forbid multiple instances on the same host)
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#      - labelSelector:
+#          matchExpressions:
+#          - key: app
+#            operator: In
+#            values:
+#            - [service-name]
+#        topologyKey: "kubernetes.io/hostname"
+#   labels:
+#     someKey: someValue
+#   envVars:
+#     SOME_VAR: "some_value"
+#   resources: # Limit each pod for a specific amount of resouces (Mendatory for hpa)
+#     requests:
+#       memory: "64Mi"
+#       cpu: "250m"
+#     limits:
+#       memory: "128Mi"
+#       cpu: "500m"
+#   hpa:
+#     maxReplicas: 10
+#     cpuAvrageUtilization: 75
+#     memoryAvrageUtilization: 90
+#   nfs:
+#     nfsName:
+#       server: "someServer"
+#       path: "/path/to/nfsFolder"
+#       mountPath: "/path/to/localFolder" (inside the container)
+#   hostPath: # Should be used only in developer minikube like environments !
+#     hostPathName:
+#       path: "/path/to/hostFolder"
+#       mountPath: "/path/to/localFolder" (inside the container)
+#   configDirPath: "/path/to/configFolder/inside/the/container"
+#   service: # Add service (Mendatory for Ingress)
+#   - port: 8080
+#     name: someName # *Optional* service port name (default to api-0...api-N)
+#   ingress: # Important: All paths will be applied for all hosts and all hosts will take ONLY the first port in the service list as their backend.
+#     annotations: # List of possible annotations: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/
+#       nginx.ingress.kubernetes.io/some-param: 'some-value'
+#     hosts:
+#     - simple.service.example.url
+#     paths:
+#     - /
+#     tls:
+#     - secretName: simple-service-tls-secret
+#       hosts:
+#       - simple.service.example.url

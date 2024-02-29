@@ -1,0 +1,116 @@
+When you're using TCP mode in HAProxy (mode tcp), you're working at the transport layer, and HAProxy acts as a TCP proxy. In this mode, HAProxy does not inspect or manipulate the content of the traffic as it does in HTTP mode (mode http). Instead, it forwards the raw TCP packets without any awareness of the application protocol being used.
+
+For example, if you're using HAProxy to balance TCP traffic to a Kubernetes API server, you'll be sending raw TLS/SSL packets without deciphering the content. Therefore, in this mode, you generally don't need to worry about certificates at the HAProxy level because HAProxy doesn't perform SSL termination or inspection.
+
+
+---this will setup for browser access stats, at 192.168.14.179:8080/haproxy_stats--------
+
+
+
+#---------------------------------------------------------------------
+# Example configuration for a possible web application.  See the
+# full configuration options online.
+#
+#   http://haproxy.1wt.eu/download/1.4/doc/configuration.txt
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# Global settings
+#---------------------------------------------------------------------
+global
+    # to have these messages end up in /var/log/haproxy.log you will
+    # need to:
+    #
+    # 1) configure syslog to accept network log events.  This is done
+    #    by adding the '-r' option to the SYSLOGD_OPTIONS in
+    #    /etc/sysconfig/syslog
+    #
+    # 2) configure local2 events to go to the /var/log/haproxy.log
+    #   file. A line like the following can be added to
+    #   /etc/sysconfig/syslog
+    #
+    #    local2.*                       /var/log/haproxy.log
+    #
+    log         127.0.0.1 local2
+
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+
+
+    daemon
+
+
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+#---------------------------------------------------------------------
+# common defaults that all the 'listen' and 'backend' sections will
+# use if not designated in their block
+#---------------------------------------------------------------------
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    #option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 1
+    timeout http-request    10s
+    timeout queue           20s
+    timeout connect         5s
+    timeout client          20s
+    timeout server          20s
+    timeout http-keep-alive 10s
+    timeout check           10s
+
+#listen stats
+#      bind :8111
+#      mode http
+#      stats enable
+#      stats uri /haproxy_stats
+#      stats realm HAProxy\ Statistics
+#      stats auth root:qwerty1234
+
+
+
+
+frontend local-server
+        bind *:6443
+        mode tcp
+        option tcplog
+        default_backend kube-apiserver
+
+backend kube-apiserver
+        option httpchk GET /healthz
+        http-check expect status 200
+        mode tcp
+        option tcplog
+        option ssl-hello-chk
+        balance roundrobin
+
+        server master1 192.168.14.180:6443 check
+        server master2 192.168.14.181:6443 check
+        server master3 192.168.14.182:6443 check
+        server worker1 192.168.14.183:6443 check
+        server worker2 192.168.14.184:6443 check
+
+# Frontend for HAProxy stats (HTTP mode)
+frontend haproxy-stats
+    bind *:8080
+    mode http
+    stats uri /haproxy_stats
+
+# ... other backend configurations ...
+
+# Backend configuration for HAProxy stats (if needed)
+backend haproxy-stats-backend
+    mode http
+    stats enable
+    stats uri /haproxy_stats
+    stats realm HAProxy\ Statistics
+    stats auth root:qwerty1234
+
+
