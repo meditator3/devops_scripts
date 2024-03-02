@@ -13,7 +13,7 @@ sudo debconf-set-selection <<< 'mysql-server mysql-server/root_password_again pa
  admin'
 
  sudo apt-get install mysql-server -y
- sudo mysql start
+ sudo systemctl start mysql 
  mysql -u root -padmin < createUser.sql
 
  curl -Ss https://getcomposer.org/installer | php
