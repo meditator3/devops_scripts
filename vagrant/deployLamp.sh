@@ -14,7 +14,7 @@ sudo debconf-set-selection <<< 'mysql-server mysql-server/root_password_again pa
 
  sudo apt-get install mysql-server -y
  sudo mysql start
- mysql -u root -padmin < /vagrant/createUser.sql
+ mysql -u root -padmin < createUser.sql
 
  curl -Ss https://getcomposer.org/installer | php
  sudo mv composer.phar /usr/bin/composer
