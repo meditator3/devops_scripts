@@ -12,7 +12,7 @@ sudo debconf-set-selection <<< 'mysql-server mysql-server/root_password password
 sudo debconf-set-selection <<< 'mysql-server mysql-server/root_password_again password
  admin'
 
- sudo apt-get install mysql-server
+ sudo apt-get install mysql-server -y
  sudo mysql start
  mysql -u root -padmin < /vagrant/createUser.sql
 
