@@ -4,12 +4,11 @@
 
 
 sudo apt-get update
-sudo apt-get install -y apache2 php php-mbstring php-zip phpunit unzip libapache2-mod-php
+sudo apt-get install -y apache2 php php-mbstring php-zip phpunit unzip libapache2-mod-php deconf-utils
 
 sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password admin'
 
-sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password
- admin'
+sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password admin'
 
  sudo apt-get install mysql-server -y
  sudo systemctl start mysql 
