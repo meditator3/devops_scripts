@@ -23,7 +23,7 @@ sudo debconf-set-selection <<< 'mysql-server mysql-server/root_password_again pa
  cd /var/www
  composer create-project --prefer-dist laravel/laravel myProject
  chmod -R 777 /var/www/myProject/storage
-
+ cd /var/www/myProject
  sudo sed -i 's/DocumentRoot.*/DocumentRoot \/var\/www\/myProject\/public/' /etc/apache2/sites-available/000-default.conf
 
  sudo apachectl restart
