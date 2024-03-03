@@ -11,10 +11,11 @@ print(f"Timer started at {time.strftime('%X', start_time)}")
 #^^ .strftime() brings me in a certain format (XX:XX:XX)
 
 # Wait for user to stop timer
-input("Press  enter to STOP timer")
+input("Press any key and then press  enter to STOP timer")
 #now this will register via stop_time
 stop_time = time.localtime()
 
+# once i stopped it will be entered into stop_time via mktime sub_function
 difference = time.mktime(stop_time) - time.mktime(start_time)
 #mktime() converts it to format of seconds
 
