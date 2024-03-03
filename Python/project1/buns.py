@@ -1,4 +1,8 @@
 # division by // zeros the float reminder, but maintain float definition if divided by float
+
+# if each bun costs 2.40$ and costumer has only 15$, how much will he get. 
+# do it without loop and with loop but without condition
+
 bun = 2.40
 budget = 15
 
