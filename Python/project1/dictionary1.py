@@ -24,7 +24,7 @@ print(ages.keys()) # dict_keys(['ariel', 'kayla'])
 # or just list the values
 print(ages.values()) # dict_values([48, 21])
 
-# can convert dictionary into list(much like convert tuple):
+# convert dictionary into list(like convert tuple):
 new_list = list(ages.values())
 print(new_list) # [48, 21]
 
