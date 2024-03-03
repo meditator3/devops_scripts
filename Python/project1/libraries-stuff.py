@@ -3,6 +3,7 @@ import time # we need to import the lib first
 now = time.localtime()
 print(now)
 #time.struct_time(tm_year=2023, tm_mon=4, tm_mday=7, tm_hour=11, tm_min=47, tm_sec=56, tm_wday=4, tm_yday=97, tm_isdst=1)
+print(now.tm_hour, now.tm_year, now.tm_mon)
 
 # create a timer
 start_time = time.localtime()
@@ -10,7 +11,7 @@ print(f"Timer started at {time.strftime('%X', start_time)}")
 #^^ .strftime() brings me in a certain format (XX:XX:XX)
 
 # Wait for user to stop timer
-input("Press any key to stop Timer")
+input("Press  enter to STOP timer")
 #now this will register via stop_time
 stop_time = time.localtime()
 
