@@ -12,6 +12,8 @@ print_name("Ariel")
 
 output = print_name("Mushy Brain")
 
+print (output)
+
 def add_two(num):
     return num+2
 
@@ -23,14 +25,14 @@ print(result)
 def gather_info():
     height = float(input("what is your height? (inches or meters): "))
     weight = float(input("what is your weight? (kg or pound): "))
-    system = input ("are your measurements in meteric(kg/meter) or imperial(pound/inch)? ").lower().strip()
+    system = input ("are your measurements in metric(kg/meter) or imperial(pound/inch)? ").lower().strip()
     #.lower() = lowercase, strip()= removes spaces
     return (height, weight, system)
 
 # this ^^ function only gathers info. 
 
 
-def calculate_bmi(weight, height, system = 'metric'):
+def calculate_bmi(weight, height, system = 'metric'): # default is metric(if no value was passed)
     """
     Return the Body Mass Index (BMI) for the
     given weight, height, and measurement system
@@ -40,11 +42,13 @@ def calculate_bmi(weight, height, system = 'metric'):
     else:
         bmi = (weight / (height ** 2)) * 703
     return bmi
-while True: # in case i didn't put values
+
+while True: # this runs always until i do break
     height, weight, system = gather_info()
     if system.startswith('i'):
         bmi = calculate_bmi(weight, height=height, system='imperial')
         print(f"your BMI is:{bmi}")
+        break
     elif system.startswith('m'):
         bmi = calculate_bmi(weight, height)
         print(f"your BMI is:{bmi}")
