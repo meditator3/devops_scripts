@@ -3,8 +3,8 @@ ages = {'ariel': 48, 'alex': 34, "bob": 29}
 print(type(ages)) # will give "dict" as dictionart
 
 # to get particular value, or key value, in JS it would be ages.ariel
-print(ages['ariel'])
-print(ages['alex'])
+print(ages['ariel']) # prints 48
+print(ages['alex'])  # prints 34 
 
 # can also add another key-value pair to the dict:
 ages['kayla'] = 21
