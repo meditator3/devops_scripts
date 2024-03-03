@@ -7,3 +7,6 @@ for i in range(1, 13):
     print("No. {0:2} squared is {1:3} and cubed is {2:4}".format(i, i**2, i**3))
 
 # spaces out with the :2 or :3 or 4:
+
+template= 44
+print(f" you could be young if you were only {template}")
