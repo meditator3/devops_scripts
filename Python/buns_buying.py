@@ -14,4 +14,4 @@ counter = 0
 
 #for i in (bun, sum):
  #   print(i)
-
+# see buns in project1 folder for loop version without conditional
