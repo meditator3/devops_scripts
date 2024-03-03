@@ -9,6 +9,10 @@ seperators = number[1::4]
 print(seperators)
 
 values = "".join(char if char not in seperators else " " for char in number).split()
-print([int(val) for val in values])
+# for every character(char placeholder) that is not seperator join it, and if it meets a seperator
+# create a space between them, iterate(loop) over the whole string, until removed all seperators
+# and then use split to cut them into cells.
 
+print([int(val) for val in values])
+# the [   ] for the whole arguments redfines it as an array
 
