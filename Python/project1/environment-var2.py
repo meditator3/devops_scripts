@@ -7,21 +7,9 @@
  how is this done in python?
 """
 import os # installing an operating system library(which is already in python)
-stage = os.environ["STAGE"].upper() # this extracts the env. variable "stage"
-# and converts it to uppercase
-# this DOES NOT create an environment variable.
 
-output = f"We're running in {stage}"
-if stage.startswith("PROD"):
-    output = "DANGER !!! - " + output
 
-print(output)
 
-# this will print an error, because there is no env. var. named "STAGE"!!
-# so we need to create it via windows, like explained above
-# and also because even if we did place stage in env. var. in windows
-# it won't register in pycharm, so we have to reboot the editor.
-# same with git bash
 
 """
 also we can do something similar with getenv()
@@ -29,7 +17,8 @@ but if we delete the env.variable
 it won't import it from the registery, but will
 also CREATE it.
 """
-stage2 = os.getenv("STAGE").upper() # this removes errors using getenv
+stage2 = os.getenv("STAGE", "dev").upper() # this removes errors using getenv
+# by adding actual env. variable with the value dev
 
 output2 = f"We're running in {stage2}"
 if stage2.startswith("PROD"):
