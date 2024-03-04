@@ -6,4 +6,8 @@ with open('xmen_base.txt', 'a') as f: # 'a' is appending into file
 f = open('xmen_base.txt', 'a')
 with f:
     f.write("Something\n")
-    
+
+with open('xmen_base.txt', 'r') as f:
+    print(f.read())
+
+# now every run will add something and Prof.
