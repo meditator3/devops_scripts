@@ -13,7 +13,7 @@ with open(file_name, "w") as f:
     lines = [] # defines array?
     while not eof:
         line = input()
-        if line.strip(): # if there are spaces in line- you can append, if not-eof becomes true>exit
+        if line.strip(): # any characters that can be "stripped" is true statement, if not-eof becomes true>exit
             lines.append(f"{line}\n") # appends to the array
         else:
             eof = True

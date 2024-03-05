@@ -19,16 +19,18 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(description='kill the running processes listening on a given port')
 parser.add_argument('port', type=int, help='the port number to search for')
-
+parser.add_argument('port_name', type=str, help='if no port number is declared. for ex. http') # there is a problem killing process 80 since its ID'ed as http, and not port 80...
 port = parser.parse_args().port
 port_name = parser.parse_args().port_name
+
 try:
-    net_result = subprocess.run(
+    net_result = subprocess.run( # needed to add sudo because it doesnt have permissions?
         ["sudo", "netstat", "-tanup", "|", "grep %s " % port],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
 
-    result = subprocess.run( # this didn't work too good
+    result = subprocess.run( # this didn't work too good, because port 80 couldn't be extracted on http
+                            #  unkown why?
         ['lsof', '-n', 'i4TCP:%s' % port],  # we create it as a list/array not as a whole string/argument
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE)
@@ -45,10 +47,11 @@ else:
             break
     if listening:
         pid_temp = str(listening.split()[6]) # the process id we need is in column 6
-        pid_pr = pid_temp.split("b'")[1] # we don't know what b' came from
+        pid_pr = pid_temp.split("b'")[1] # we don't know where b' came from
         pid = int(pid_pr.split("/")[0]) # make it a number and not a string so we can kill the process via number
         #pid = int(listening.split()[1]) # process id [1] is column
         os.kill(pid, 9) # kill is built in python, 9 is forcefully
+
         print(f"Killed process {pid}")
     else:
         print(f"No process listening port {port}")
