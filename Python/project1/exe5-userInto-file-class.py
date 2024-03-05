@@ -14,7 +14,7 @@ with open(file_name, "w") as f:
     while not eof:
         line = input()
         if line.strip(): # if there are spaces in line- you can append, if not-eof becomes true>exit
-            line.append(f"{line}\n") # appends to the array
+            lines.append(f"{line}\n") # appends to the array
         else:
             eof = True
 
