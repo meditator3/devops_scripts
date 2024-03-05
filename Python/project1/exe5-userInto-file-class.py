@@ -18,5 +18,5 @@ with open(file_name, "w") as f:
         else:
             eof = True
 
-    f.writelines(lines) #
+    f.writelines(lines) # writes each cell of array into line, to that file
     print(f"lines written into {file_name}")
