@@ -23,7 +23,7 @@ print(receipts)
 
 subtotal = 0.0 # float as we know
 for path in receipts:
-    with open(path) as f:
+    with open(path) as f:  # it opens the file one by one according to reciepts list
         content = json.load(f) # json.load is special function that i load the content of json into "content", f is what
         #print(content) # we iterate over the paths
         subtotal += float(content['receipt']['purchasedItems'][0]['price']) # [0] because the price is inside an array
