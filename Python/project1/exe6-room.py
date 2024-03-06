@@ -24,3 +24,4 @@ if res.status_code == 200:
     #print(content.)
 else:
     print(f"Request failed with status code {res.status_code}")
+
