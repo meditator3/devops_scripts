@@ -38,5 +38,5 @@ print(res.json) # we print the response in json
 # 401 error:
 #curl --location \
 #  --request GET \
-#  'https://api.openweathermap.org/data/2.5/forecast?lat=55&lon=-3&appid=464121da9d31cbd0ecbd2c5aaf15848f' \
+#  'https://api.openweathermap.org/data/2.5/forecast?lat=55&lon=-3&appid=XXXf' \
 #  --header 'Content-Type: application/json'
