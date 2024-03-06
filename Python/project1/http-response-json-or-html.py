@@ -31,7 +31,13 @@ else: # will copy content of res to a file, and then translate to json using jso
        print("The URL did not return JSON data.")
 
 
-
+# to test  HTML:
+# python http-response-json-or-html.py --url https://google.com --format HTML
+# to test JSON
+#$ python http-response-json-or-html.py --url http://ip.jsontest.com/ --format JSON
+#{
+#    "ip": "147.235.194.23"
+#}
 # AI SCRIPT
 # def fetch_url_data(url, output_format):
 #     # Make the HTTP request to the URL
