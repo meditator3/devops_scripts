@@ -5,6 +5,7 @@
 # we go over all the reciepts  from JSON
 # then we TOTAL the values of the reciepts
 # move it into the folder processed.
+# the files of the reciepts are read from new folder. 
 
 # now we won't put shebang bin bash, but run it in bash via python <filename>
 import glob # this lib searches for a path name we defined, and returns the files list
