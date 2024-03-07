@@ -1,3 +1,5 @@
+#Lambda here  is just lowering case of the names in the converted list/to a table
+
 import pandas as pd # provides better repesentation of data
 df = pd.DataFrame(
     {"name": ["IBRAHIM", "SEGUN", "YUSUF", "DARE", "BOLA", "SOKUNBI"],
