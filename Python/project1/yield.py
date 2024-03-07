@@ -1,3 +1,17 @@
+def countdown(n):
+    while n > 0:
+        yield n
+        n -= 1
+
+# Create a generator object
+gen = countdown(3)
+
+# Iterate through items yielded by the generator
+for value in gen:
+    print(value)
+
+
+
 def nextSquare():
     i = 1
 
