@@ -11,3 +11,4 @@ print(df) # (pandas)this converts the dictionary into a table with id to each
 df["lower_name"] = df["name"].apply(lambda x: x.lower())
 # this also use of lambda
 print(df["score"])
+print(df["lower_name"])
