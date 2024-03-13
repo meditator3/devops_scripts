@@ -1,0 +1,45 @@
+
+version: "3.8"
+
+services:
+  drupal: 
+    image: drupal 
+    ports:
+      - 8080:80
+    
+    networks: 
+      - drupal-network 
+    volumes:
+      - ./modules:/var/www/html/modules
+      - ./profiles:/var/www/html/profiles
+      - ./sites:/var/www/html/sites
+      - ./themes:/var/www/html/themes
+  postgres: 
+    image: postgres
+    environment:
+      - POSTGRES_DB=drupal
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    networks:
+      drupal-network: 
+        aliases:
+          - "db"
+    volumes:
+      - ./psql:/var/lib/postgresql/data
+networks:
+  drupal-network:     
+
+
+##for the DB to work:
+# chmod 777 the folders in the parent folder of the compose
+# then add these files:
+# sudo touch ./sites/default/default.settings.php
+# sudo chmod 777 ./sites/default/default.settings.php
+# and:
+# sudo touch ./sites/default/settings.php
+# sudo chmod 777 ./sites/default/settings.php
+# use the user password in this yaml to get into DB
+# select postGres - not MYSQL
+# then select advanced, and use alias db
+# if psql is in the parent folder delete it! it is from previous compose, and conflicts.
+
