@@ -33,9 +33,11 @@ networks:
 ## CHANGED IN THE REPO THESE FILES:
 ## inside ./database/database.sql : CREATE DATABASE IF NOT EXISTS movies;
 ## and in requirements.txt in ./webapp :
-## Flask>=2.0
-## Jinja2>=3.0
-## Flask-SQLAlchemy>=2.5
+## 
+## see requirements.txt in this folder
+## 
+## and in server.py :
+## from markupsafe import escape
 ## make sure to remove images before compose up again, because 
 ## it only checks for updates in the yaml file, and not in the repo's files
 
