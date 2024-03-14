@@ -1,0 +1,41 @@
+version: '1.0'
+# this to create a compose of web app and mysql,
+# of table of movies and an app that shows it(written in python)
+# https://github.com/Koenkk/docker-compose-exercise/tree/master
+
+services:
+  mysql:
+    build:
+      context: ./database
+      dockerfile: Dockerfile 
+    networks:
+      - docker-compose-exercise
+    environment:
+      
+      MYSQL_ROOT_PASSWORD: movie123
+    volumes:
+      - db:/var/libe/mysql
+  webapp:
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+    networks:
+      - docker-compose-exercise
+    ports:
+      - 8080:80
+volumes:
+  db:
+
+networks:
+  docker-compose-exercise:
+
+
+## CHANGED IN THE REPO THESE FILES:
+## inside ./database/database.sql : CREATE DATABASE IF NOT EXISTS movies;
+## and in requirements.txt in ./webapp :
+## Flask>=2.0
+## Jinja2>=3.0
+## Flask-SQLAlchemy>=2.5
+## make sure to remove images before compose up again, because 
+## it only checks for updates in the yaml file, and not in the repo's files
+
