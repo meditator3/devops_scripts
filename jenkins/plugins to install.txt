@@ -1,0 +1,275 @@
+mark V next to:
+
+-Docker Pipeline
+-WMI WINDOWS agent(work remote)
+- paramterized Trigger
+-Blue Ocean(everything on)
+  -core JS
+  -web for blue O
+  -JWT for blue O
+  -Pipeline SCM API for Blue O
+  -REST implentation for Blue O
+  -Pipeline Implementation for Blue O
+  -Dashboard for blue o
+  -personalized for blue O
+  - Git pipeline
+  - i18n for Blue o
+  - Display URL for Blue O
+  - Pernoalization for Blue O
+
+- Conditional Buildstep	
+
+-----------
+updates:
+next marks V on these:
+everything pipeline
+- Pipeline declarative 
+- Pipeline Declarative extension points API
+- pipeline Job
+- Pipeline: Modal API
+- pipeline: stages tag
+- BRANCH API 
+-build timeOUT
+-MAILER
+
+---------
+
+go to available plugins:
+mark V:
+-config API for blue O
+- Blue ocean pipeline editor
+- events API for blue ocean
+- Blue Ocean
+- publish over SSH
+-SSH agent
+-Pipeline declarative agent
+-git paraneter
+-autofavorite for blue ocean
+-pipeline utility steps
+-sonarQube scanner
+-copy artifact
+-rebuilder
+-AnsiColor (adds color cute)
+
+--------------
+more plugins:
+-slack notifications
+-docker API
+- SSH
+- docker
+-job DSL
+- Jon configuration history
+- kubernetes credentials
+- kubernetes client api
+- Cloudbees AWS credentials
+- kuberenets
+-extended choice parameter
+- active choices
+-(if we have active directory important to install  that plugin to not manage users. but the IT to do it themselves)
+-------------
+more instaling
+- thin backup
+- groovy
+----------------
+
+more plugins at plugins.jenkins.io/search
+------
+more plugin to install
+- chucknorris (shows comic display of jobs result)
+- greenballs
+- safe restart
+
+--all related to docker :
+- docker buil;d-step
+-cloudbees docker build 
+Amazon EXR
+docker compose build step
+docker slaves
+cloudbees docker costume build env.
+image tag parameter
+---
+more to install
+artifactory
+nexus artifact uploader
+terraform
+ansible
+
+
+
+
+
+Branch API
+Mavenized dependencies
+Static resources
+License and dependency information for plugins
+Name
+Build Timeout
+ECharts API Plugin
+JavaMail API
+GitHub plugin
+Mailer Plugin
+Pipeline: Groovy
+Git client plugin
+Mina SSHD API :: Core
+JavaBeans Activation Framework (JAF) API
+Conditional BuildStep
+OWASP Markup Formatter Plugin
+Timestamper
+GitHub Branch Source Plugin
+Caffeine API Plugin
+GitHub API Plugin
+Pipeline: SCM Step
+Pipeline: Nodes and Processes
+Structs Plugin
+Apache HttpComponents Client 4.x API Plugin
+Java JSON Web Token (JJWT) Plugin
+Bootstrap 5 API Plugin
+Pipeline: Declarative Extension Points API
+PAM Authentication plugin
+Credentials Plugin
+Plain Credentials Plugin
+JQuery3 API Plugin
+WMI Windows Agents Plugin
+LDAP Plugin
+Pipeline: API
+Docker Commons Plugin
+SSH server
+Trilead API Plugin
+Matrix Project Plugin
+Font Awesome API Plugin
+Pipeline: Milestone Step
+Plugin Utilities API Plugin
+Branch API Plugin
+Gradle Plugin
+Pipeline
+Pipeline: Job
+Favorite
+Pipeline: Stage Step
+Workspace Cleanup Plugin
+Matrix Authorization Strategy Plugin
+Jackson 2 API Plugin
+SSH Credentials Plugin
+Pipeline Graph Analysis Plugin
+Pipeline: Groovy Libraries
+Pipeline: GitHub Groovy Libraries
+Ant Plugin
+Common API for Blue Ocean
+Jakarta Mail API
+Authentication Tokens API Plugin
+bouncycastle API Plugin
+JUnit Plugin
+Personalization for Blue Ocean
+Jakarta Activation API
+commons-lang3 v3.x Jenkins API Plugin
+i18n for Blue Ocean
+Pipeline: REST API Plugin
+Web for Blue Ocean
+Pipeline: Supporting APIs
+commons-text API Plugin
+Script Security Plugin
+Docker Pipeline
+Pipeline: Input Step
+Folders Plugin
+Email Extension Plugin
+Pipeline: Stage View Plugin
+Git plugin
+Pub-Sub "light" Bus
+Resource Disposer Plugin
+JWT for Blue Ocean
+Pipeline: Basic Steps
+Ionicons API
+Parameterized Trigger plugin
+REST Implementation for Blue Ocean
+Variant Plugin
+Blue Ocean Core JS
+Display URL for Blue Ocean
+Checks API plugin
+Pipeline: Step API
+Pipeline: Multibranch
+Mina SSHD API :: Common
+JAXB plugin
+OkHttp Plugin
+HTML Publisher plugin
+Pipeline: Build Step
+Pipeline: Stage Tags Metadata
+SnakeYAML API Plugin
+GitHub Pipeline for Blue Ocean
+REST API for Blue Ocean
+Instance Identity
+Dashboard for Blue Ocean
+Pipeline: Declarative
+Display URL API
+Run Condition Plugin
+Token Macro Plugin
+Pipeline SCM API for Blue Ocean
+SCM API Plugin
+Design Language
+Pipeline implementation for Blue Ocean
+SSH Build Agents plugin
+Pipeline: Model API
+Credentials Binding Plugin
+Git Pipeline for Blue Ocean
+Durable Task Plugin
+Config API for Blue Ocean
+Blue Ocean Pipeline Editor
+Server Sent Events (SSE) Gateway Plugin
+Events API for Blue Ocean
+Oracle Java SE Development Kit Installer Plugin
+Command Agent Launcher Plugin
+Infrastructure plugin for Publish Over X
+JSch dependency plugin
+Publish Over SSH
+Handy Uri Templates 2.x API Plugin
+Bitbucket Branch Source Plugin
+Bitbucket Pipeline for Blue Ocean
+Blue Ocean
+SSH Agent Plugin
+Pipeline: Declarative Agent API
+Git Parameter Plug-In
+Pipeline Utility Steps
+Autofavorite for Blue Ocean
+SonarQube Scanner for Jenkins
+Copy Artifact Plugin
+Rebuilder
+AnsiColor
+Slack Notification Plugin
+Apache HttpComponents Client 5.x API Plugin
+Docker API Plugin
+SSH plugin
+Cloud Statistics Plugin
+Docker plugin
+Job DSL
+Job Configuration History Plugin
+Kubernetes Client API Plugin
+Kubernetes Credentials Plugin
+Amazon Web Services SDK :: Minimal
+Amazon Web Services SDK :: EC2
+CloudBees AWS Credentials Plugin
+Metrics Plugin
+Kubernetes plugin
+Extended Choice Parameter Plugin
+Active Choices Plug-in
+ThinBackup
+Groovy
+jQuery plugin
+Build Pipeline Plugin
+ChuckNorris Plugin
+Green Balls
+Safe Restart Plugin
+Javadoc Plugin
+Maven Integration plugin
+docker-build-step
+CloudBees Docker Build and Publish plugin
+Amazon Web Services SDK :: ECR
+Amazon ECR plugin
+Docker Compose Build Step Plugin
+Docker Slaves Plugin
+CloudBees Docker Custom Build Environment Plugin
+CloudBees Docker Hub/Registry Notification
+Image Tag Parameter Plugin
+Config File Provider Plugin
+Artifactory Plugin
+Commons HttpClient 3.x API
+Nexus Artifact Uploader
+Terraform Plugin
+Ansible plugin
