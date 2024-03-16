@@ -2,6 +2,7 @@ version: '1.8'
 # this to create a compose of web app and mysql,
 # of table of movies and an app that shows it(written in python)
 # https://github.com/Koenkk/docker-compose-exercise/tree/master
+# the falsk app supposedly expects service "database" in its db_uri = 'mysql://root:movie123@database:3306/movies'
 
 services:
   database:
