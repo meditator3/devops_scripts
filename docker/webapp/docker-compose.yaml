@@ -1,26 +1,33 @@
-version: '1.0'
+version: '1.8'
 # this to create a compose of web app and mysql,
 # of table of movies and an app that shows it(written in python)
 # https://github.com/Koenkk/docker-compose-exercise/tree/master
 
 services:
-  mysql:
+  database:
     build:
       context: ./database
-      dockerfile: Dockerfile 
-    networks:
-      - docker-compose-exercise
-    environment:
-      
-      MYSQL_ROOT_PASSWORD: movie123
-    volumes:
-      - db:/var/libe/mysql
-  webapp:
-    build:
-      context: ./webapp
       dockerfile: Dockerfile
     networks:
       - docker-compose-exercise
+    environment:
+      MYSQL_DATABASE: movies
+      MYSQL_ROOT_PASSWORD: movie123
+    volumes:
+      - db:/var/lib/mysql
+
+  webapp:
+    depends_on:
+      - database
+    build:
+      context: ./webapp
+      dockerfile: Dockerfile
+
+    networks:
+      docker-compose-exercise:
+        aliases:
+           - "database"
+
     ports:
       - 8080:80
 volumes:
@@ -28,6 +35,8 @@ volumes:
 
 networks:
   docker-compose-exercise:
+
+
 
 
 ## CHANGED IN THE REPO THESE FILES:
