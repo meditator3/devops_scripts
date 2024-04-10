@@ -1,0 +1,44 @@
+# resource quotas are for managing resources and limiting them in the cluster, 
+# for cases where several teams are working, and to NOT allow anyone to hog too much resources to himself-ruining for others.
+# mkdir resourcequota
+# cd resourcequota
+# nano resourcequota.yml
+
+
+
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myspace
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: myspace
+spec:
+  hard:
+    requests.cpu: "1"
+    requests.memory: 1Gi
+    limits.cpu: "2"
+    limits.memory: 2Gi
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: object-quota
+  namespace: myspace
+spec:
+  hard:
+    configmaps: "10"
+    persistentvolumeclaims: "4"
+    replicationcontrollers: "20"
+    secrets: "10"
+    services: "10"
+    services.loadbalancers: "2"
+
+
+
+
+# kubectl create -f resourcequota.yml
