@@ -16,6 +16,9 @@ service account- means it tells the permission of the account
 service:
 
   only defines a few params as values in the app-values
+
+ingress:
+  checks even for version of kube to know which ingress to deploy
   
 test file:
 
