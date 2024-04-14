@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ include "assignment-10-empty-node-chart.fullname" . }}
   labels:
-    {{- include "assignment-10-empty-node-chart.labels" . | nindent 4 }} # פותר בעית אינדנטציה, מתעלם ממנה
+    {{- include "assignment-10-empty-node-chart.labels" . | nindent 4 }} # פותר בעית אינדנטציה, כופה אינדנטציה שיתאים תמיד
 spec:
   {{- if not .Values.autoscaling.enabled }} # if the autoscaling not enabled he will change the replica count accordingly
   replicas: {{ .Values.replicaCount }}
