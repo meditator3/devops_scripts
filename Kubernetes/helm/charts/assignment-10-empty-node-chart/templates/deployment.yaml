@@ -3,14 +3,14 @@ kind: Deployment
 metadata:
   name: {{ include "assignment-10-empty-node-chart.fullname" . }}
   labels:
-    {{- include "assignment-10-empty-node-chart.labels" . | nindent 4 }}
+    {{- include "assignment-10-empty-node-chart.labels" . | nindent 4 }} # פותר בעית אינדנטציה, מתעלם ממנה
 spec:
-  {{- if not .Values.autoscaling.enabled }}
+  {{- if not .Values.autoscaling.enabled }} # if the autoscaling not enabled he will change the replica count accordingly
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "assignment-10-empty-node-chart.selectorLabels" . | nindent 6 }}
+      {{- include "assignment-10-empty-node-chart.selectorLabels" . | nindent 6 }} # to know which label the app is for?
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -20,7 +20,7 @@ spec:
       labels:
         {{- include "assignment-10-empty-node-chart.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets }} # if we need secrets to pull image, to connect to some registery
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -31,10 +31,10 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}" # takes the values from nginx
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - name: http
+            - name: http  # hardocded..less good
               containerPort: {{ .Values.service.targetPort }}
               protocol: TCP
           livenessProbe:
