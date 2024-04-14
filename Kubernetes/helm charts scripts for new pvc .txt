@@ -7,9 +7,9 @@ apiVersion: v1
 metadata:
   name: {{ include "application-demo.fullname" . }}
   labels:
-    {{- include "application-demo.labels" . | nindent 4 }}
+    {{- include "application-demo.labels" . | nindent 4 }} # מסדר את האינדנטציה גם אם טעינו
 spec:
-{{ - if .Values.pvc.storageClass }}
+{{ - if .Values.pvc.storageClass }} 
 {{ - if (eq "-" .Values.pvc.storageClass) }}
   storageClassName: ""
 {{- else }}
