@@ -52,9 +52,27 @@ spec:
 
 -----
 -----
-the config map itself:
+the data of the config map itself:
 driver=jdbc
 database=postgres
 lookandfell=1
 otherparams=xyz
 param.with.hierarchy=xyz
+
+----BUT those are just values ^^^ /data to be installed/referenced for the app. and each one will create a file by that name and value in it according to the key pair values.
+for example there will be a file inside the container at /etc/config called driver and the value in it will be jdbc!
+
+proper configmap.yaml for this:
+-------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  driver: jdbc
+  database: postgres
+  lookandfeel: "1"
+  otherparams: xyz
+  param.with.hierarchy: xyz
+---------
+now, k8s will reference the name app-config from the deployment and extract the values accordingly.
