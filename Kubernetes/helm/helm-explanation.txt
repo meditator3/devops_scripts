@@ -1,0 +1,47 @@
+helm needs first of all image and port and name of app.
+like a deployment.
+
+if you work on k8s-images are different???
+so to create helm chart you need first and foremost the image
+
+-process---
+
+mkdir  k8s-demo
+
+helm create web-server 
+
+-- we got folder with
+
+charts, templates
+chart.yaml 
+values.yaml
+.helmignore
+
+under charts usually nothing
+
+under templates:
+
+ingress.yaml
+service.yaml
+deployment.yaml
+hpa.yaml  (horizontal pod autoscaler)
+serviceaccount.yaml
+
+
+ingress.yaml
+-----
+there are different version of api if it is under v19.  there are conditions for each version of k8s we use, we get different api version to it. sometimes we wont get ingressClassName if its earlier than v18
+
+we don't touch anything here.
+
+
+-0-----
+we don't have STS-statefulset, so we have to prepare it ourselves.
+
+example of added values:
+
+service.yaml
+----
+spec:
+  protocol: {{ .Values.service.protocol }} # in the template we decide if its UDP or TCP
+  name: {{ .Values.service.name }} # instead of name in the service
