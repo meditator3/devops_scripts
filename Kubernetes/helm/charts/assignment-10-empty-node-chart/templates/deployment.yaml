@@ -10,7 +10,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "assignment-10-empty-node-chart.selectorLabels" . | nindent 6 }} # to know which label the app is for?
+      {{- include "assignment-10-empty-node-chart.selectorLabels" . | nindent 6 }} # ensure deployment pod match the label specified
   template:
     metadata:
       {{- with .Values.podAnnotations }}
