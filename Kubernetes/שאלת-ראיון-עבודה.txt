@@ -1,0 +1,29 @@
+ Exercise: Deploy a Stateful Application in Kubernetes
+
+Objective: Deploy a stateful application in a Kubernetes cluster. Use a StatefulSet to ensure ordered pod creation and persistent storage for the application.
+
+Steps:
+
+    Setup a Kubernetes Cluster:
+    If you don't already have a Kubernetes cluster, set up a local cluster using Minikube, Kind, or use a cloud-based solution like GKE, AKS, or EKS.
+
+    Create a StatefulSet:
+    Write a StatefulSet configuration in YAML that defines a simple stateful application. The StatefulSet should include at least three replicas. You can use an example application like nginx or httpd for simplicity.
+
+    Define Persistent Storage:
+    Create a PersistentVolume and PersistentVolumeClaim (PV and PVC) to provide persistent storage for your stateful application. The PVC should be mounted in each pod of the StatefulSet.
+
+    Deploy the Stateful Application:
+    Apply the StatefulSet and PVC configurations to your Kubernetes cluster using kubectl. Verify that the pods are created in an ordered fashion (e.g., web-0, web-1, web-2) and that they have access to persistent storage.
+
+    Expose the Application:
+    Create a Service (e.g., a ClusterIP or NodePort service) to expose the stateful application within the cluster.
+
+    Test and Verify:
+    Test the deployment by accessing the application using the service's IP and port. Ensure that you can access the application, and that data is persistent even if pods are rescheduled or restarted.
+
+    Scaling:
+    Experiment with scaling the StatefulSet up and down using kubectl. Observe how new pods are created and how the persistent storage is handled.
+
+    Clean Up:
+    When you're done, make sure to delete the resources you've created (StatefulSet, PV, PVC, and Service) to clean up your cluster.
