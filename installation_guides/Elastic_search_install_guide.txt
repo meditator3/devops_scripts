@@ -1,0 +1,47 @@
+short explanation:
+elastic is a company that can raise on cloud clusters for logging.
+you need cluster for logging, and LB the logs.
+or deploy it on your cloud env. 
+all costs money. unless we don't use 
+
+
+https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elastic-stack-on-ubuntu-22-04
+install nginx  (before doing passwords!)
+ignore reverse proxy stage, because then it costs money to login for kibana
+
+check whats the port for kibana, use sudo apt instal net-tools, and netstat -tanup
+
+change /etc/kibana (vi) remove comments on #port and #localhost=0.0.0.0
+
+edit inbound rules for the sec.group for http
+
+user: kibanaadmin password: (simple one)
+encrypted password: kibanaadmin:$apr1$u5paoH51$cJWmAgtWXiweJiTvTWtS40
+
+
+BUT, we still did it. to look at it.
+install nginx
+
+create new site vi /etc/nginx/sites-available/kibana
+sudo ln -s /etc/nginx/sites-available/kibana /etc/nginx/sites-enabled/kibana
+
+in the server_name -
+(to allow access to all?? check in AI)
+also delete default in 
+/etc/nginx/site-enabled 
+which routes default always, instead of kibana which we defined it earlier.
+
+you can access kibana WITHOUT username/password with port 5601
+
+
+installing logstash:
+usually in a company you would install it on a different server
+
+we changed machine size. shutting it down, chose t2.xlarge for 4 cpu
+becuase top was showing lots of load
+
+installing filebeat-
+filebeat is like an agent that passes everything from logstash to kibana.
+
+XXXXXX not working stuck on localhost:5044 not working...??? 
+the connection refused when setting up pipelines of firebeat
