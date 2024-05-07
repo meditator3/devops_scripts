@@ -1,4 +1,4 @@
-the service of config map:
+the deployment of app using config map:
 
 apiVersion: apps/v1
 kind: Deployment
