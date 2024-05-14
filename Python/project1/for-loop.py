@@ -13,7 +13,9 @@ print("=======")
 ages = {'kevin':59, 'bob':40, 'kayla':21}
 for key in ages:
     print(key) # will print the names only
-
+for value in ages.values():
+    print(value) # will print only ages(the values of the name key)
+    
 # unpacking with for loop
 
 list_of_points = [(1, 2), (2, 3), (3, 4)]
