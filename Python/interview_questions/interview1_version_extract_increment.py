@@ -4,7 +4,7 @@
 tag = "aztek_v_1.0.3.300"
 # remove . and extract last number
 arr_str = tag.split(".")
-print(tag)
+print("tag at first:", tag)
 def extract_v_num(tag):
     return arr_str[len(arr_str)-1]
 
@@ -17,13 +17,12 @@ def increment_version_number_return_full_tag (tag_num, list):
     new_version = '.'.join(list)
     tag = new_version
     return tag
-print(arr_str)
+print("list:", arr_str)
 print("tag:",tag)
 
-print(extract_v_num(tag))
-tag = increment_version_number_return_full_tag(tag_num, arr_str)
-tag_num = int(extract_v_num(tag))
-print("new tag: ",tag)
-tag = increment_version_number_return_full_tag(tag_num, arr_str)
-print("new tag: ",tag)
+print("extracted version number:", extract_v_num(tag))
+tag = increment_version_number_return_full_tag(int(extract_v_num(tag)), arr_str)
 
+print("new tag: ",tag)
+tag = increment_version_number_return_full_tag(int(extract_v_num(tag)), arr_str)
+print("newer tag: ",tag)
