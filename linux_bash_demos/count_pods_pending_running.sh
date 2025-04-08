@@ -1,4 +1,5 @@
 #!/bin/bash
+# use argument p or r for running or pending to count and display running/pending pods:
 if [ $1 == "p" ]
 then
         LIST=$(kubectl get pods -A --no-headers --field-selector status.phase=Pending)
