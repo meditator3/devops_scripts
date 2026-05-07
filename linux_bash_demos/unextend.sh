@@ -14,7 +14,7 @@ echo "minimum is 4mb for volume"
 echo "see list of block storage"
 lsblk
 echo "now format just this logical volume"
-sudo kfs.ext4 /dev/practice_storage/storg_prac
+sudo mkfs.ext4 /dev/practice_storage/storg_prac
 echo "mount according to naming"
 sudo mkdir /mnt/prac_storg
 sudo mount /dev/practice_storage/storg_prac /mnt/prac_storg
