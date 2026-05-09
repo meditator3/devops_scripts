@@ -7,7 +7,7 @@ networks:
     enp0s3: 
       dhcp4: no
       addresses: 
-        - 192.168.1.235
+        - 192.168.1.235/24
       gateway4: 198.168.1.1
       nameservers: 
         addresses:
@@ -15,3 +15,5 @@ networks:
       
       
 version: 2
+
+echo " then apply with sudo netplan apply"
