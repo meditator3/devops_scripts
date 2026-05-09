@@ -1,0 +1,12 @@
+jenkins on dokcer image as master, would need mounted volume of ssh keys(best practice though is jenkins credentials UI)
+and to persiste mount the /var/jenkins_home as well in the docker run
+
+after docker pull jenkins/jenkins:latest
+
+sudo docker run -itd -p 8080:8080 -p 50000:50000 -v jenkins_data:/var/jenkins_home -v /home/ariel/.ssh:/keys jenkins/jenkins:latest
+
+copy private key to the jenkins slave config after selecting ssh. and make sure pub key pasted in authorized keys
+install on slave java - apt install openjdk-21-jre
+
+make sure java folder /usr/bin/java
+and also that java versions of master and slave are compatible
