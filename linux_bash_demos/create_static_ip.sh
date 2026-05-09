@@ -5,7 +5,7 @@ echo "check also ip a for interface name"
 networks:
   ethernets:
     enp0s3: 
-      dhcp4: no
+      dhcp4: false
       addresses: 
         - 192.168.1.235/24
       gateway4: 198.168.1.1
@@ -17,3 +17,4 @@ networks:
 version: 2
 
 echo " then apply with sudo netplan apply"
+echo " dhcp4 is method for creating temp ip4 addresses, so it must be set to false, in static sceanrio, like here"
