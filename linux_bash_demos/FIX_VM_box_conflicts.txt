@@ -1,0 +1,10 @@
+even after revising netplan, (cloud-init status) cloud init will override and remove the static ip.
+to remove cloud init auto assign override - 
+create new config file
+sudo vi /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg
+
+network: {config: disabled}
+
+then 
+sudo cloud-init clean
+sudo cloud-init boot
