@@ -7,4 +7,4 @@ network: {config: disabled}
 
 then 
 sudo cloud-init clean
-sudo cloud-init reboot
+sudo reboot
