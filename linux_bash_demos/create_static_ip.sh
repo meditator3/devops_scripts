@@ -1,5 +1,9 @@
 echo "in centos typically netmanager is built in, so you can ntmui or nmcli to apply static ip"
-echo "in ubuntu its in /etc/netplan/<some sort of yaml file>
+echo "in ubuntu its in /etc/netplan/<some sort of yaml file>"
+
+echo " also you need to remove cloud init auto generation because it'll override this new setting"
+echo " sudo vi /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg"
+echo " in the vi --  network: {config: disabled}
 echo "you can edit the yaml to this:"
 echo "check also ip a for interface name"
 networks:
