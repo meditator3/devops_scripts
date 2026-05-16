@@ -16,3 +16,7 @@ sudo mkdir /mnt/vol2-vol0
 sudo mount /dev/storg2/lvol0 /mnt/vol2-vol0
 
 echo " and now to make it permament in fstab"
+echo " put this line in:"
+sudo vi /etc/fstab
+echo "careful its VERY sensitive and can brfeak boot forever!"
+echo " /dev/storg2/lvol0 /mnt/vol2-vol0 ext4 defaults 0 0 "
